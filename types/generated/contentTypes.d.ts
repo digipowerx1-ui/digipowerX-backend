@@ -461,6 +461,40 @@ export interface ApiContactFormContactForm extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiEmailAlertEmailAlert extends Struct.CollectionTypeSchema {
+  collectionName: 'email_alerts';
+  info: {
+    displayName: 'email-alert';
+    pluralName: 'email-alerts';
+    singularName: 'email-alert';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    company: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email;
+    firstName: Schema.Attribute.String;
+    lastName: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::email-alert.email-alert'
+    > &
+      Schema.Attribute.Private;
+    pressReleases: Schema.Attribute.Boolean;
+    publishedAt: Schema.Attribute.DateTime;
+    secFilings: Schema.Attribute.Boolean;
+    stockDetailEndOfDay: Schema.Attribute.Boolean;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPresentationPresentation
   extends Struct.CollectionTypeSchema {
   collectionName: 'presentations';
@@ -1097,6 +1131,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::contact-form.contact-form': ApiContactFormContactForm;
+      'api::email-alert.email-alert': ApiEmailAlertEmailAlert;
       'api::presentation.presentation': ApiPresentationPresentation;
       'api::press-release.press-release': ApiPressReleasePressRelease;
       'api::project.project': ApiProjectProject;

@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "email_alerts",
+  "info": {
+    "singularName": "email-alert",
+    "pluralName": "email-alerts",
+    "displayName": "email-alert"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "email": {
+      "type": "email"
+    },
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "pressReleases": {
+      "type": "boolean"
+    },
+    "secFilings": {
+      "type": "boolean"
+    },
+    "stockDetailEndOfDay": {
+      "type": "boolean"
+    }
+  }
+}
