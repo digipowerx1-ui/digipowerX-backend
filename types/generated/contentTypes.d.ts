@@ -495,6 +495,34 @@ export interface ApiEmailAlertEmailAlert extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiNotifyMeNotifyMe extends Struct.CollectionTypeSchema {
+  collectionName: 'notify_mes';
+  info: {
+    displayName: 'notify-me';
+    pluralName: 'notify-mes';
+    singularName: 'notify-me';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::notify-me.notify-me'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPresentationPresentation
   extends Struct.CollectionTypeSchema {
   collectionName: 'presentations';
@@ -1132,6 +1160,7 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::contact-form.contact-form': ApiContactFormContactForm;
       'api::email-alert.email-alert': ApiEmailAlertEmailAlert;
+      'api::notify-me.notify-me': ApiNotifyMeNotifyMe;
       'api::presentation.presentation': ApiPresentationPresentation;
       'api::press-release.press-release': ApiPressReleasePressRelease;
       'api::project.project': ApiProjectProject;

@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "notify_mes",
+  "info": {
+    "singularName": "notify-me",
+    "pluralName": "notify-mes",
+    "displayName": "notify-me"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "email": {
+      "type": "email"
+    }
+  }
+}
