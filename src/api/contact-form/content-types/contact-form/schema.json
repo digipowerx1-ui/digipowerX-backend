@@ -17,7 +17,7 @@
     "lastName": {
       "type": "string"
     },
-    "workEmail": {
+    "Email": {
       "type": "email"
     },
     "message": {
