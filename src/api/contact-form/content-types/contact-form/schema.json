@@ -4,7 +4,7 @@
   "info": {
     "singularName": "contact-form",
     "pluralName": "contact-forms",
-    "displayName": "Contact Form"
+    "displayName": "Contact-Form"
   },
   "options": {
     "draftAndPublish": true
@@ -17,20 +17,20 @@
     "lastName": {
       "type": "string"
     },
-    "Email": {
-      "type": "email"
-    },
-    "message": {
+    "companyName": {
       "type": "string"
     },
-    "companyName": {
+    "workEmail": {
       "type": "string"
     },
     "title": {
       "type": "string"
     },
     "phoneNumber": {
-      "type": "integer"
+      "type": "biginteger"
+    },
+    "message": {
+      "type": "string"
     }
   }
 }
