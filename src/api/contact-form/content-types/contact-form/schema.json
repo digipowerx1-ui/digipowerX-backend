@@ -17,11 +17,20 @@
     "lastName": {
       "type": "string"
     },
-    "email": {
+    "workEmail": {
       "type": "email"
     },
     "message": {
       "type": "string"
+    },
+    "companyName": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "phoneNumber": {
+      "type": "integer"
     }
   }
 }

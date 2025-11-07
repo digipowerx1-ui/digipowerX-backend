@@ -441,10 +441,10 @@ export interface ApiContactFormContactForm extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    companyName: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    email: Schema.Attribute.Email;
     firstName: Schema.Attribute.String;
     lastName: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
@@ -454,10 +454,13 @@ export interface ApiContactFormContactForm extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     message: Schema.Attribute.String;
+    phoneNumber: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    workEmail: Schema.Attribute.Email;
   };
 }
 
