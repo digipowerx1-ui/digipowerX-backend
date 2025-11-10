@@ -558,6 +558,38 @@ export interface ApiNotifyMeNotifyMe extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiOpenPositionOpenPosition
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'open_positions';
+  info: {
+    displayName: 'open-position';
+    pluralName: 'open-positions';
+    singularName: 'open-position';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.RichText;
+    jobType: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::open-position.open-position'
+    > &
+      Schema.Attribute.Private;
+    location: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiPartnerPartner extends Struct.CollectionTypeSchema {
   collectionName: 'partners';
   info: {
@@ -1228,6 +1260,7 @@ declare module '@strapi/strapi' {
       'api::contact-form.contact-form': ApiContactFormContactForm;
       'api::email-alert.email-alert': ApiEmailAlertEmailAlert;
       'api::notify-me.notify-me': ApiNotifyMeNotifyMe;
+      'api::open-position.open-position': ApiOpenPositionOpenPosition;
       'api::partner.partner': ApiPartnerPartner;
       'api::presentation.presentation': ApiPresentationPresentation;
       'api::press-release.press-release': ApiPressReleasePressRelease;

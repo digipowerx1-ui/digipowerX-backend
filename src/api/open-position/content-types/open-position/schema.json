@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "open_positions",
+  "info": {
+    "singularName": "open-position",
+    "pluralName": "open-positions",
+    "displayName": "open-position"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "jobType": {
+      "type": "string"
+    },
+    "description": {
+      "type": "richtext"
+    }
+  }
+}
