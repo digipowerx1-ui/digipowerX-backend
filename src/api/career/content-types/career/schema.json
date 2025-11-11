@@ -23,7 +23,7 @@
     "phone": {
       "type": "biginteger"
     },
-    "Pdf": {
+    "portfolio_Link": {
       "type": "media",
       "multiple": false,
       "allowedTypes": [

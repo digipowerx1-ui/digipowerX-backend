@@ -453,8 +453,10 @@ export interface ApiCareerCareer extends Struct.CollectionTypeSchema {
       'api::career.career'
     > &
       Schema.Attribute.Private;
-    Pdf: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     phone: Schema.Attribute.BigInteger;
+    portfolio_Link: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
