@@ -454,9 +454,7 @@ export interface ApiCareerCareer extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     phone: Schema.Attribute.BigInteger;
-    portfolio_Link: Schema.Attribute.Media<
-      'images' | 'files' | 'videos' | 'audios'
-    >;
+    portfolio_Link: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

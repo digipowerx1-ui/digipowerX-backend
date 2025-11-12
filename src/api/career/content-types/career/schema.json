@@ -24,14 +24,7 @@
       "type": "biginteger"
     },
     "portfolio_Link": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
+      "type": "string"
     }
   }
 }
