@@ -1,4 +1,5 @@
-// import type { Core } from '@strapi/strapi';
+import type { Core } from '@strapi/strapi';
+import { mailchimpService } from './services/mailchimp';
 
 export default {
   /**
@@ -7,7 +8,106 @@ export default {
    *
    * This gives you an opportunity to extend code.
    */
-  register(/* { strapi }: { strapi: Core.Strapi } */) {},
+  register({ strapi }: { strapi: Core.Strapi }) {
+    // Register lifecycle hooks for sec-filing
+    strapi.db.lifecycles.subscribe({
+      models: ['api::sec-filing.sec-filing'],
+      async afterCreate(event) {
+        const { result } = event;
+        console.log('📄 New SEC Filing created:', result.documentId);
+
+        // Only send email if the document is published
+        if (result.publishedAt) {
+          try {
+            await mailchimpService.sendCampaign('sec-filing', result);
+          } catch (error) {
+            console.error('Failed to send Mailchimp campaign for SEC filing:', error);
+          }
+        }
+      },
+      async afterUpdate(event) {
+        const { result } = event;
+        console.log('📄 SEC Filing updated:', result.documentId);
+
+        // Send email when document is published (transitioned from draft to published)
+        if (result.publishedAt && event.params?.data?.publishedAt) {
+          try {
+            await mailchimpService.sendCampaign('sec-filing', result);
+          } catch (error) {
+            console.error('Failed to send Mailchimp campaign for SEC filing:', error);
+          }
+        }
+      },
+    });
+
+    // Register lifecycle hooks for press-release
+    strapi.db.lifecycles.subscribe({
+      models: ['api::press-release.press-release'],
+      async afterCreate(event) {
+        const { result } = event;
+        console.log('📰 New Press Release created:', result.documentId);
+
+        // Only send email if the document is published
+        if (result.publishedAt) {
+          try {
+            await mailchimpService.sendCampaign('press-release', result);
+          } catch (error) {
+            console.error('Failed to send Mailchimp campaign for press release:', error);
+          }
+        }
+      },
+      async afterUpdate(event) {
+        const { result } = event;
+        console.log('📰 Press Release updated:', result.documentId);
+
+        // Send email when document is published (transitioned from draft to published)
+        if (result.publishedAt && event.params?.data?.publishedAt) {
+          try {
+            await mailchimpService.sendCampaign('press-release', result);
+          } catch (error) {
+            console.error('Failed to send Mailchimp campaign for press release:', error);
+          }
+        }
+      },
+    });
+
+    // Register lifecycle hooks for email-alert (optional: sync with Mailchimp)
+    strapi.db.lifecycles.subscribe({
+      models: ['api::email-alert.email-alert'],
+      async afterCreate(event) {
+        const { result } = event;
+        console.log('📧 New email alert subscriber:', result.email);
+
+        try {
+          await mailchimpService.syncSubscriber({
+            email: result.email,
+            firstName: result.firstName,
+            lastName: result.lastName,
+            pressReleases: result.pressReleases,
+            secFilings: result.secFilings,
+          });
+        } catch (error) {
+          console.error('Failed to sync subscriber to Mailchimp:', error);
+        }
+      },
+      async afterUpdate(event) {
+        const { result } = event;
+        console.log('📧 Email alert subscriber updated:', result.email);
+
+        try {
+          await mailchimpService.syncSubscriber({
+            email: result.email,
+            firstName: result.firstName,
+            lastName: result.lastName,
+            pressReleases: result.pressReleases,
+            secFilings: result.secFilings,
+          });
+        } catch (error) {
+          console.error('Failed to sync subscriber to Mailchimp:', error);
+        }
+      },
+    });
+  },
 
   /**
    * An asynchronous bootstrap function that runs before
@@ -16,5 +116,12 @@ export default {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  bootstrap(/* { strapi }: { strapi: Core.Strapi } */) {},
+  bootstrap({ strapi }: { strapi: Core.Strapi }) {
+    // Initialize Mailchimp service
+    mailchimpService.configure({
+      apiKey: process.env.MAILCHIMP_API_KEY || '',
+      serverPrefix: process.env.MAILCHIMP_SERVER_PREFIX || '',
+      listId: process.env.MAILCHIMP_LIST_ID || '',
+    });
+  },
 };
