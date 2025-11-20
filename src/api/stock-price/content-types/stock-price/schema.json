@@ -1,0 +1,43 @@
+{
+  "kind": "collectionType",
+  "collectionName": "stock_prices",
+  "info": {
+    "singularName": "stock-price",
+    "pluralName": "stock-prices",
+    "displayName": "Stock Price"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "symbol": {
+      "type": "string",
+      "required": true,
+      "default": "DGXX"
+    },
+    "date": {
+      "type": "date",
+      "required": true
+    },
+    "open": {
+      "type": "decimal"
+    },
+    "high": {
+      "type": "decimal"
+    },
+    "low": {
+      "type": "decimal"
+    },
+    "close": {
+      "type": "decimal",
+      "required": true
+    },
+    "volume": {
+      "type": "biginteger"
+    },
+    "preMarket": {
+      "type": "decimal"
+    }
+  }
+}

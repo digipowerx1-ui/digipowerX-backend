@@ -746,6 +746,43 @@ export interface ApiSecFilingSecFiling extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiStockPriceStockPrice extends Struct.CollectionTypeSchema {
+  collectionName: 'stock_prices';
+  info: {
+    displayName: 'Stock Price';
+    pluralName: 'stock-prices';
+    singularName: 'stock-price';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    close: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date: Schema.Attribute.Date & Schema.Attribute.Required;
+    high: Schema.Attribute.Decimal;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::stock-price.stock-price'
+    > &
+      Schema.Attribute.Private;
+    low: Schema.Attribute.Decimal;
+    open: Schema.Attribute.Decimal;
+    preMarket: Schema.Attribute.Decimal;
+    publishedAt: Schema.Attribute.DateTime;
+    symbol: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'DGXX'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    volume: Schema.Attribute.BigInteger;
+  };
+}
+
 export interface PluginContentReleasesRelease
   extends Struct.CollectionTypeSchema {
   collectionName: 'strapi_releases';
@@ -1266,6 +1303,7 @@ declare module '@strapi/strapi' {
       'api::press-release.press-release': ApiPressReleasePressRelease;
       'api::project.project': ApiProjectProject;
       'api::sec-filing.sec-filing': ApiSecFilingSecFiling;
+      'api::stock-price.stock-price': ApiStockPriceStockPrice;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

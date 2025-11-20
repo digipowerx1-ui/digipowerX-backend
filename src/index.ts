@@ -71,6 +71,37 @@ export default {
       },
     });
 
+    // Register lifecycle hooks for stock-price
+    strapi.db.lifecycles.subscribe({
+      models: ['api::stock-price.stock-price'],
+      async afterCreate(event) {
+        const { result } = event;
+        console.log('📈 New Stock Price created:', result.documentId);
+
+        // Only send email if the document is published
+        if (result.publishedAt) {
+          try {
+            await mailchimpService.sendCampaign('stock-price', result);
+          } catch (error) {
+            console.error('Failed to send Mailchimp campaign for stock price:', error);
+          }
+        }
+      },
+      async afterUpdate(event) {
+        const { result } = event;
+        console.log('📈 Stock Price updated:', result.documentId);
+
+        // Send email when document is published (transitioned from draft to published)
+        if (result.publishedAt && event.params?.data?.publishedAt) {
+          try {
+            await mailchimpService.sendCampaign('stock-price', result);
+          } catch (error) {
+            console.error('Failed to send Mailchimp campaign for stock price:', error);
+          }
+        }
+      },
+    });
+
     // Register lifecycle hooks for email-alert (optional: sync with Mailchimp)
     strapi.db.lifecycles.subscribe({
       models: ['api::email-alert.email-alert'],
@@ -85,6 +116,7 @@ export default {
             lastName: result.lastName,
             pressReleases: result.pressReleases,
             secFilings: result.secFilings,
+            stockPrices: result.stockDetailEndOfDay,
           });
         } catch (error) {
           console.error('Failed to sync subscriber to Mailchimp:', error);
@@ -101,6 +133,7 @@ export default {
             lastName: result.lastName,
             pressReleases: result.pressReleases,
             secFilings: result.secFilings,
+            stockPrices: result.stockDetailEndOfDay,
           });
         } catch (error) {
           console.error('Failed to sync subscriber to Mailchimp:', error);

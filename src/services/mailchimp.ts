@@ -12,6 +12,7 @@ interface Subscriber {
   lastName?: string;
   pressReleases?: boolean;
   secFilings?: boolean;
+  stockPrices?: boolean;
 }
 
 class MailchimpService {
@@ -33,7 +34,7 @@ class MailchimpService {
   }
 
   async sendCampaign(
-    contentType: 'sec-filing' | 'press-release',
+    contentType: 'sec-filing' | 'press-release' | 'stock-price',
     content: any
   ): Promise<void> {
     if (!this.isConfigured) {
@@ -69,7 +70,7 @@ class MailchimpService {
 
 
   private async createCampaign(
-    contentType: 'sec-filing' | 'press-release',
+    contentType: 'sec-filing' | 'press-release' | 'stock-price',
     content: any,
     listId: string
   ) {
@@ -119,18 +120,88 @@ class MailchimpService {
     }
   }
 
-  private getSubject(contentType: 'sec-filing' | 'press-release', content: any): string {
+  private getSubject(contentType: 'sec-filing' | 'press-release' | 'stock-price', content: any): string {
     if (contentType === 'sec-filing') {
       return `New SEC Filing: ${content.form_type || 'Form'} - ${content.description || 'Update'}`;
-    } else {
+    } else if (contentType === 'press-release') {
       return `New Press Release: ${content.title || 'Update'}`;
+    } else {
+      return `Daily Stock Update: ${content.symbol || 'DGXX'} - ${content.date ? new Date(content.date).toLocaleDateString() : ''}`;
     }
   }
 
-  private generateEmailContent(contentType: 'sec-filing' | 'press-release', content: any): string {
+  private generateEmailContent(contentType: 'sec-filing' | 'press-release' | 'stock-price', content: any): string {
     const baseUrl = process.env.FRONTEND_URL || 'https://digipowerx.com';
 
-    if (contentType === 'sec-filing') {
+    if (contentType === 'stock-price') {
+      const priceChange = content.close - content.open;
+      const priceChangePercent = ((priceChange / content.open) * 100).toFixed(2);
+      const changeColor = priceChange >= 0 ? '#28a745' : '#dc3545';
+      const changeSymbol = priceChange >= 0 ? '▲' : '▼';
+
+      return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Daily Stock Update</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px;">
+            <h1 style="color: #0066cc; margin-top: 0;">Daily Stock Update</h1>
+            <div style="background-color: white; padding: 20px; border-radius: 4px; margin-top: 20px;">
+              <h2 style="color: #333; font-size: 24px; margin-bottom: 10px;">${content.symbol || 'DGXX'}</h2>
+              <p style="font-size: 14px; color: #666; margin-top: 0;">
+                <strong>Date:</strong> ${content.date ? new Date(content.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}
+              </p>
+
+              <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0;">
+                <div style="font-size: 32px; font-weight: bold; color: #333; margin-bottom: 5px;">
+                  $${content.close?.toFixed(2) || 'N/A'}
+                </div>
+                <div style="font-size: 18px; color: ${changeColor}; font-weight: 600;">
+                  ${changeSymbol} $${Math.abs(priceChange).toFixed(2)} (${priceChangePercent}%)
+                </div>
+              </div>
+
+              <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <tr style="border-bottom: 1px solid #e0e0e0;">
+                  <td style="padding: 10px 0; font-weight: 600; color: #666;">Open</td>
+                  <td style="padding: 10px 0; text-align: right; font-weight: 600;">$${content.open?.toFixed(2) || 'N/A'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0e0e0;">
+                  <td style="padding: 10px 0; font-weight: 600; color: #666;">High</td>
+                  <td style="padding: 10px 0; text-align: right; font-weight: 600;">$${content.high?.toFixed(2) || 'N/A'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0e0e0;">
+                  <td style="padding: 10px 0; font-weight: 600; color: #666;">Low</td>
+                  <td style="padding: 10px 0; text-align: right; font-weight: 600;">$${content.low?.toFixed(2) || 'N/A'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e0e0e0;">
+                  <td style="padding: 10px 0; font-weight: 600; color: #666;">Volume</td>
+                  <td style="padding: 10px 0; text-align: right; font-weight: 600;">${content.volume ? content.volume.toLocaleString() : 'N/A'}</td>
+                </tr>
+                ${content.preMarket ? `
+                <tr style="border-bottom: 1px solid #e0e0e0;">
+                  <td style="padding: 10px 0; font-weight: 600; color: #666;">Pre-Market</td>
+                  <td style="padding: 10px 0; text-align: right; font-weight: 600;">$${content.preMarket.toFixed(2)}</td>
+                </tr>
+                ` : ''}
+              </table>
+
+              <p style="text-align: center;">
+                <a href="${baseUrl}/investor-relations" style="display: inline-block; background-color: #0066cc; color: white; padding: 12px 30px; text-decoration: none; border-radius: 4px; margin-top: 20px; font-weight: 600;">View More Data</a>
+              </p>
+            </div>
+            <p style="font-size: 12px; color: #666; margin-top: 20px;">
+              You received this email because you subscribed to daily stock price alerts from DigiPowerX.
+            </p>
+          </div>
+        </body>
+        </html>
+      `;
+    } else if (contentType === 'sec-filing') {
       return `
         <!DOCTYPE html>
         <html>
@@ -211,6 +282,7 @@ class MailchimpService {
         tags: [
           ...(subscriber.pressReleases ? ['PRESS_RELEASES'] : []),
           ...(subscriber.secFilings ? ['SEC_FILINGS'] : []),
+          ...(subscriber.stockPrices ? ['STOCK_PRICES'] : []),
         ],
       };
 
