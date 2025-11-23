@@ -336,7 +336,7 @@ class MailchimpService {
                                     </tr>
                                     <tr>
                                       <td>
-                                        <a href="${baseUrl}/sec-filings" style="color: #01d3ff; font-size: 13px; font-weight: 600; text-decoration: none;">Download PDF →</a>
+                                        <a href="${content.pdf_file?.url ? (content.pdf_file.url.startsWith('http') ? content.pdf_file.url : `${baseUrl}${content.pdf_file.url}`) : `${baseUrl}/sec-filings/${content.documentId}`}" style="color: #01d3ff; font-size: 13px; font-weight: 600; text-decoration: none;" target="_blank">Download PDF →</a>
                                       </td>
                                     </tr>
                                   </table>
@@ -421,7 +421,7 @@ class MailchimpService {
                             <p style="color: #01d3ff; font-size: 12px; font-weight: 600; text-transform: uppercase; margin: 0 0 8px 0; letter-spacing: 0.5px;">${content.date ? new Date(content.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</p>
                             <h3 style="color: #1e293b; font-size: 20px; font-weight: 600; margin: 0 0 10px 0; line-height: 1.4;">${content.title || 'Press Release'}</h3>
                             <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 15px 0;">${content.content ? content.content.substring(0, 250) + '...' : 'Read the full press release on our website.'}</p>
-                            <a href="${baseUrl}/press-releases" style="display: inline-block; color: #01d3ff; font-size: 14px; font-weight: 600; text-decoration: none; border-bottom: 2px solid #01d3ff; padding-bottom: 2px;">Read Full Release →</a>
+                            <a href="${content.pdf_file?.url ? (content.pdf_file.url.startsWith('http') ? content.pdf_file.url : `${baseUrl}${content.pdf_file.url}`) : `${baseUrl}/press-releases/${content.documentId}`}" style="display: inline-block; color: #01d3ff; font-size: 14px; font-weight: 600; text-decoration: none; border-bottom: 2px solid #01d3ff; padding-bottom: 2px;" target="_blank">Read Full Release →</a>
                           </td>
                         </tr>
                       </table>
