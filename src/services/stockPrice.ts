@@ -17,7 +17,7 @@ class StockPriceService {
   private baseUrl: string = 'https://api.massive.com/v1';
 
   constructor() {
-    this.apiKey = process.env.MASSIVE_API_KEY || 'YkYoy5TFxWSGWgO6cZmX57tjyBWSzb2p';
+    this.apiKey = process.env.MASSIVE_API_KEY || 'QBYWPHtMciWYKtpfxskThmLmYVJnvgKh';
   }
 
   /**
