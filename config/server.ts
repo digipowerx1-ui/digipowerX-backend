@@ -7,15 +7,20 @@ export default ({ env }) => ({
   cron: {
     enabled: true,
     tasks: {
-      // Fetch daily stock prices after market close (6 PM EST = 11 PM UTC)
-      '0 23 * * 1-5': async ({ strapi }) => {
+      // Fetch daily stock prices at 3:00 PM IST (9:30 AM UTC)
+      '30 9 * * 1-5': async ({ strapi }) => {
         console.log('🕐 Running daily stock price fetch cron job...');
+        console.log('📋 MASSIVE_API_KEY configured:', process.env.MASSIVE_API_KEY ? 'Yes' : 'No');
         try {
           const { stockPriceService } = require('../src/services/stockPrice');
-          await stockPriceService.fetchAndSaveStockPrice('DGXX');
-          console.log('✅ Daily stock price fetch completed');
+          const result = await stockPriceService.fetchAndSaveStockPrice('DGXX');
+          if (result) {
+            console.log('✅ Daily stock price fetch completed, entry ID:', result.id);
+          } else {
+            console.warn('⚠️ Daily stock price fetch returned no data');
+          }
         } catch (error) {
-          console.error('❌ Error in stock price cron job:', error);
+          console.error('❌ Error in stock price cron job:', error.message || error);
         }
       },
     },

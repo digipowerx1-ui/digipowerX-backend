@@ -13,11 +13,15 @@ interface StockPriceData {
 }
 
 class StockPriceService {
-  private apiKey: string;
   private baseUrl: string = 'https://api.massive.com/v1';
 
-  constructor() {
-    this.apiKey = process.env.MASSIVE_API_KEY || 'QBYWPHtMciWYKtpfxskThmLmYVJnvgKh';
+  private getApiKey(): string {
+    const apiKey = process.env.MASSIVE_API_KEY;
+    if (!apiKey) {
+      console.error('❌ MASSIVE_API_KEY environment variable is not set!');
+      throw new Error('MASSIVE_API_KEY is required but not configured');
+    }
+    return apiKey;
   }
 
   /**
@@ -34,7 +38,7 @@ class StockPriceService {
       // If no date provided, use previous business day
       const targetDate = date || this.getPreviousBusinessDay();
 
-      const url = `${this.baseUrl}/open-close/${symbol}/${targetDate}?adjusted=true&apiKey=${this.apiKey}`;
+      const url = `${this.baseUrl}/open-close/${symbol}/${targetDate}?adjusted=true&apiKey=${this.getApiKey()}`;
 
       console.log(`Fetching stock price for ${symbol} on ${targetDate}...`);
 
