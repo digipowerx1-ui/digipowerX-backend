@@ -120,26 +120,34 @@ class StockPriceService {
   }
 
   /**
-   * Get previous business day (excluding weekends)
+   * Get the latest trading day based on US Eastern Time
+   * Cron runs at 3:00 AM IST = 4:30 PM ET (after market close)
+   * So we need to get the current US date, not IST date
    * @returns Date string in YYYY-MM-DD format
    */
   private getPreviousBusinessDay(): string {
-    const today = new Date();
-    let daysToSubtract = 1;
+    // Get current time in US Eastern timezone
+    const now = new Date();
+    const etOptions = { timeZone: 'America/New_York' };
+    const etDateStr = now.toLocaleDateString('en-CA', etOptions); // en-CA gives YYYY-MM-DD format
+    const etDate = new Date(etDateStr + 'T12:00:00'); // Use noon to avoid DST issues
 
-    // If today is Monday (1), go back 3 days to Friday
-    if (today.getDay() === 1) {
-      daysToSubtract = 3;
+    const dayOfWeek = etDate.getDay();
+    let daysToSubtract = 0;
+
+    // If Saturday (6), go back 1 day to Friday
+    if (dayOfWeek === 6) {
+      daysToSubtract = 1;
     }
-    // If today is Sunday (0), go back 2 days to Friday
-    else if (today.getDay() === 0) {
+    // If Sunday (0), go back 2 days to Friday
+    else if (dayOfWeek === 0) {
       daysToSubtract = 2;
     }
 
-    const previousDay = new Date(today);
-    previousDay.setDate(today.getDate() - daysToSubtract);
+    const tradingDay = new Date(etDate);
+    tradingDay.setDate(etDate.getDate() - daysToSubtract);
 
-    return this.formatDate(previousDay);
+    return this.formatDate(tradingDay);
   }
 
   /**
