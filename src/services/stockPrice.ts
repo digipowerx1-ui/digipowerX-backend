@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { Core } from '@strapi/strapi';
 
 interface StockPriceData {
   status: string;
@@ -14,6 +15,22 @@ interface StockPriceData {
 
 class StockPriceService {
   private baseUrl: string = 'https://api.massive.com/v1';
+  private strapiInstance: Core.Strapi | null = null;
+
+  setStrapi(strapi: Core.Strapi) {
+    this.strapiInstance = strapi;
+  }
+
+  private getStrapi(): Core.Strapi {
+    if (this.strapiInstance) {
+      return this.strapiInstance;
+    }
+    // Fallback to global strapi if available
+    if (typeof strapi !== 'undefined') {
+      return strapi;
+    }
+    throw new Error('Strapi instance not available');
+  }
 
   private getApiKey(): string {
     const apiKey = process.env.MASSIVE_API_KEY;
@@ -67,7 +84,8 @@ class StockPriceService {
    */
   async saveStockPrice(stockData: StockPriceData) {
     try {
-      const entry = await strapi.entityService.create('api::stock-price.stock-price', {
+      const strapiInstance = this.getStrapi();
+      const entry = await strapiInstance.entityService.create('api::stock-price.stock-price', {
         data: {
           symbol: stockData.symbol,
           date: stockData.from,
@@ -104,7 +122,8 @@ class StockPriceService {
     }
 
     // Check if stock price for this date already exists
-    const existingEntries = await strapi.entityService.findMany('api::stock-price.stock-price', {
+    const strapiInstance = this.getStrapi();
+    const existingEntries = await strapiInstance.entityService.findMany('api::stock-price.stock-price', {
       filters: {
         symbol: stockData.symbol,
         date: stockData.from,
