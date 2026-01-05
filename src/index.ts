@@ -150,6 +150,12 @@ export default {
    * run jobs, or perform some special logic.
    */
   bootstrap({ strapi }: { strapi: Core.Strapi }) {
+    // Log API keys on startup
+    console.log('🚀 Server starting...');
+    console.log('📋 MASSIVE_API_KEY configured:', process.env.MASSIVE_API_KEY ? 'Yes' : 'No');
+    console.log('🔑 MASSIVE_API_KEY (first 10 chars):', process.env.MASSIVE_API_KEY ? process.env.MASSIVE_API_KEY.substring(0, 10) + '...' : 'NOT SET');
+    console.log('📋 MAILCHIMP_API_KEY configured:', process.env.MAILCHIMP_API_KEY ? 'Yes' : 'No');
+
     // Initialize Mailchimp service
     mailchimpService.configure({
       apiKey: process.env.MAILCHIMP_API_KEY || '',
