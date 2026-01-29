@@ -455,7 +455,10 @@ export interface ApiCareerCareer extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     phone: Schema.Attribute.BigInteger;
     portfolio_Link: Schema.Attribute.String;
+    problemSolutionAttachment: Schema.Attribute.Media<'files'> &
+      Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
+    resume: Schema.Attribute.Media<'files'> & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -570,10 +573,13 @@ export interface ApiOpenPositionOpenPosition
     draftAndPublish: true;
   };
   attributes: {
+    additionalDocuments: Schema.Attribute.Media<'files', true>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.RichText;
+    evaluationCriteria: Schema.Attribute.RichText;
+    jdDocument: Schema.Attribute.Media<'files'>;
     jobType: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -582,8 +588,33 @@ export interface ApiOpenPositionOpenPosition
     > &
       Schema.Attribute.Private;
     location: Schema.Attribute.String;
+    preferredExperience: Schema.Attribute.RichText;
+    problemSolutioningQuestions: Schema.Attribute.RichText;
+    problemSolutioningWeightage: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<50>;
     publishedAt: Schema.Attribute.DateTime;
-    title: Schema.Attribute.String;
+    reportsTo: Schema.Attribute.String;
+    requiredExperience: Schema.Attribute.RichText;
+    responsibilities: Schema.Attribute.RichText;
+    resumeWeightage: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 0;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<50>;
+    roleSummary: Schema.Attribute.RichText;
+    successCriteria: Schema.Attribute.RichText;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

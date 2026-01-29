@@ -1,5 +1,6 @@
 import type { Core } from '@strapi/strapi';
 import { mailchimpService } from './services/mailchimp';
+import { careerNotificationService } from './services/careerNotification';
 
 export default {
   /**
@@ -102,6 +103,29 @@ export default {
       },
     });
 
+    // Register lifecycle hooks for career applications
+    strapi.db.lifecycles.subscribe({
+      models: ['api::career.career'],
+      async afterCreate(event) {
+        const { result } = event;
+        console.log('💼 New career application received:', result.fullName);
+
+        try {
+          await careerNotificationService.sendApplicationNotification({
+            fullName: result.fullName,
+            email: result.email,
+            phone: result.phone,
+            interstedRole: result.interstedRole,
+            portfolio_Link: result.portfolio_Link,
+            resume: result.resume,
+            problemSolutionAttachment: result.problemSolutionAttachment,
+          });
+        } catch (error) {
+          console.error('Failed to send career notification:', error);
+        }
+      },
+    });
+
     // Register lifecycle hooks for email-alert (optional: sync with Mailchimp)
     strapi.db.lifecycles.subscribe({
       models: ['api::email-alert.email-alert'],
@@ -162,5 +186,8 @@ export default {
       serverPrefix: process.env.MAILCHIMP_SERVER_PREFIX || '',
       listId: process.env.MAILCHIMP_LIST_ID || '',
     });
+
+    // Initialize career notification service
+    careerNotificationService.configure();
   },
 };

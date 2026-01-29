@@ -11,14 +11,61 @@
   },
   "pluginOptions": {},
   "attributes": {
+    "jdDocument": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files"]
+    },
     "title": {
-      "type": "string"
+      "type": "string",
+      "required": true
     },
     "location": {
       "type": "string"
     },
     "jobType": {
       "type": "string"
+    },
+    "reportsTo": {
+      "type": "string"
+    },
+    "roleSummary": {
+      "type": "richtext"
+    },
+    "responsibilities": {
+      "type": "richtext"
+    },
+    "requiredExperience": {
+      "type": "richtext"
+    },
+    "preferredExperience": {
+      "type": "richtext"
+    },
+    "successCriteria": {
+      "type": "richtext"
+    },
+    "resumeWeightage": {
+      "type": "integer",
+      "default": 50,
+      "min": 0,
+      "max": 100
+    },
+    "problemSolutioningWeightage": {
+      "type": "integer",
+      "default": 50,
+      "min": 0,
+      "max": 100
+    },
+    "problemSolutioningQuestions": {
+      "type": "richtext"
+    },
+    "evaluationCriteria": {
+      "type": "richtext"
+    },
+    "additionalDocuments": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["files"]
     },
     "description": {
       "type": "richtext"

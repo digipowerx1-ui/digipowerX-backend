@@ -25,6 +25,18 @@
     },
     "portfolio_Link": {
       "type": "string"
+    },
+    "resume": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files"],
+      "required": true
+    },
+    "problemSolutionAttachment": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["files"],
+      "required": true
     }
   }
 }
