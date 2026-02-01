@@ -111,14 +111,23 @@ export default {
         console.log('💼 New career application received:', result.fullName);
 
         try {
+          // Fetch the complete entry with populated media fields
+          const completeEntry: any = await strapi.entityService.findOne(
+            'api::career.career',
+            result.id,
+            {
+              populate: ['resume', 'problemSolutionAttachment'],
+            }
+          );
+
           await careerNotificationService.sendApplicationNotification({
-            fullName: result.fullName,
-            email: result.email,
-            phone: result.phone,
-            interstedRole: result.interstedRole,
-            portfolio_Link: result.portfolio_Link,
-            resume: result.resume,
-            problemSolutionAttachment: result.problemSolutionAttachment,
+            fullName: completeEntry.fullName,
+            email: completeEntry.email,
+            phone: completeEntry.phone,
+            interstedRole: completeEntry.interstedRole,
+            portfolio_Link: completeEntry.portfolio_Link,
+            resume: completeEntry.resume,
+            problemSolutionAttachment: completeEntry.problemSolutionAttachment,
           });
         } catch (error) {
           console.error('Failed to send career notification:', error);
