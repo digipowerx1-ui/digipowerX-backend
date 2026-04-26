@@ -508,6 +508,146 @@ class MailchimpService {
     const crypto = require('crypto');
     return crypto.createHash('md5').update(email.toLowerCase()).digest('hex');
   }
+
+  /**
+   * Subscribe a user to the early access list (with EARLY_ACCESS tag) and
+   * immediately send them an early-access welcome email via a one-off campaign.
+   */
+  async sendEarlyAccessEmail(email: string): Promise<void> {
+    if (!this.isConfigured) {
+      console.warn('⚠️  Mailchimp service not configured. Skipping early access email.');
+      return;
+    }
+
+    const listId = process.env.MAILCHIMP_LIST_ID;
+    if (!listId) {
+      console.error('❌ MAILCHIMP_LIST_ID not configured');
+      return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // 1. Upsert the subscriber with the EARLY_ACCESS tag
+    try {
+      await mailchimp.lists.setListMember(
+        listId,
+        this.getSubscriberHash(normalizedEmail),
+        {
+          email_address: normalizedEmail,
+          status_if_new: 'subscribed',
+          tags: ['EARLY_ACCESS'],
+        } as any
+      );
+      console.log(`✅ Early access subscriber synced: ${normalizedEmail}`);
+    } catch (error: any) {
+      console.error('❌ Error syncing early access subscriber:', error?.response?.body || error);
+      throw error;
+    }
+
+    // 2. Create + send a one-off campaign targeted at just this email
+    try {
+      const subject = "You're on the DigiPowerX Early Access list";
+      const html = this.generateEarlyAccessEmailContent(normalizedEmail);
+
+      const campaign: any = await mailchimp.campaigns.create({
+        type: 'regular',
+        recipients: {
+          list_id: listId,
+          segment_opts: {
+            match: 'all',
+            conditions: [
+              {
+                condition_type: 'EmailAddress',
+                field: 'EMAIL',
+                op: 'is',
+                value: normalizedEmail,
+              },
+            ],
+          },
+        } as any,
+        settings: {
+          subject_line: subject,
+          from_name: process.env.MAILCHIMP_FROM_NAME || 'DigiPowerX',
+          reply_to: process.env.MAILCHIMP_REPLY_TO || 'noreply@digipowerx.com',
+          title: `Early Access - ${normalizedEmail} - ${new Date().toISOString()}`,
+        },
+      });
+
+      if (!campaign?.id) {
+        throw new Error('Failed to create early access campaign');
+      }
+
+      await mailchimp.campaigns.setContent(campaign.id, { html });
+      await mailchimp.campaigns.send(campaign.id);
+
+      console.log(`✅ Early access email sent to ${normalizedEmail} (campaign ${campaign.id})`);
+    } catch (error: any) {
+      console.error('❌ Error sending early access campaign:', error?.response?.body || error);
+      throw error;
+    }
+  }
+
+  private generateEarlyAccessEmailContent(email: string): string {
+    const baseUrl = process.env.FRONTEND_URL || 'https://digipowerx.com';
+    return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome to DigiPowerX Early Access</title>
+      </head>
+      <body style="margin:0;padding:0;background-color:#f1f5f9;font-family:Arial,sans-serif;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#f1f5f9;">
+          <tr>
+            <td style="padding:40px 0;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#334152 0%,#01d3ff 100%);padding:40px 30px;text-align:center;">
+                    <h1 style="color:#ffffff;font-size:30px;font-weight:700;margin:0 0 10px 0;">🚀 You're In!</h1>
+                    <p style="color:#ffffff;font-size:16px;margin:0;opacity:0.95;">Welcome to DigiPowerX Early Access</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:40px 30px;color:#1e293b;">
+                    <p style="font-size:16px;line-height:1.6;margin:0 0 20px 0;">Hi there,</p>
+                    <p style="font-size:16px;line-height:1.6;margin:0 0 20px 0;">
+                      Thanks for signing up for early access to <strong>DigiPowerX</strong>! We've added
+                      <strong>${email}</strong> to our early access list.
+                    </p>
+                    <p style="font-size:16px;line-height:1.6;margin:0 0 20px 0;">
+                      You'll be among the first to hear about new features, product launches, and exclusive
+                      updates. Stay tuned — exciting things are on the way.
+                    </p>
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td style="padding:20px 0;text-align:center;">
+                          <a href="${baseUrl}" style="display:inline-block;background-color:#01d3ff;color:#334152;font-size:14px;font-weight:600;text-decoration:none;padding:12px 30px;border-radius:6px;">Visit DigiPowerX →</a>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="font-size:14px;line-height:1.6;color:#64748b;margin:20px 0 0 0;">
+                      — The DigiPowerX Team
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background-color:#f8fafc;padding:24px 30px;text-align:center;border-top:1px solid #e2e8f0;">
+                    <p style="color:#94a3b8;font-size:12px;margin:0 0 8px 0;">You're receiving this email because you signed up for DigiPowerX early access.</p>
+                    <p style="color:#94a3b8;font-size:12px;margin:0;">
+                      <a href="${baseUrl}" style="color:#01d3ff;text-decoration:none;">DigiPowerX</a> |
+                      <a href="*|UNSUB|*" style="color:#01d3ff;text-decoration:none;">Unsubscribe</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+      </html>
+    `;
+  }
 }
 
 // Export singleton instance

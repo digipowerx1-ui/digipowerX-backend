@@ -1,0 +1,20 @@
+{
+  "kind": "collectionType",
+  "collectionName": "early_accesses",
+  "info": {
+    "singularName": "early-access",
+    "pluralName": "early-accesses",
+    "displayName": "Early Access"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "email": {
+      "type": "email",
+      "required": true,
+      "unique": true
+    }
+  }
+}
