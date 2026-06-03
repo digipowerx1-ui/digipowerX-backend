@@ -499,6 +499,36 @@ export interface ApiContactFormContactForm extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiEarlyAccessEarlyAccess extends Struct.CollectionTypeSchema {
+  collectionName: 'early_accesses';
+  info: {
+    displayName: 'Early Access';
+    pluralName: 'early-accesses';
+    singularName: 'early-access';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    email: Schema.Attribute.Email &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::early-access.early-access'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiEmailAlertEmailAlert extends Struct.CollectionTypeSchema {
   collectionName: 'email_alerts';
   info: {
@@ -527,35 +557,6 @@ export interface ApiEmailAlertEmailAlert extends Struct.CollectionTypeSchema {
     publishedAt: Schema.Attribute.DateTime;
     secFilings: Schema.Attribute.Boolean;
     stockDetailEndOfDay: Schema.Attribute.Boolean;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-  };
-}
-
-export interface ApiEarlyAccessEarlyAccess
-  extends Struct.CollectionTypeSchema {
-  collectionName: 'early_accesses';
-  info: {
-    displayName: 'Early Access';
-    pluralName: 'early-accesses';
-    singularName: 'early-access';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    email: Schema.Attribute.Email & Schema.Attribute.Required & Schema.Attribute.Unique;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::early-access.early-access'
-    > &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

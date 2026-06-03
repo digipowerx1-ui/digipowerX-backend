@@ -14,7 +14,7 @@ interface StockPriceData {
 }
 
 class StockPriceService {
-  private baseUrl: string = 'https://api.massive.com/v1';
+  private baseUrl: string = 'https://api.polygon.io/v1';
   private strapiInstance: Core.Strapi | null = null;
 
   setStrapi(strapi: Core.Strapi) {

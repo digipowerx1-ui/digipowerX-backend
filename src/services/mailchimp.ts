@@ -86,13 +86,20 @@ class MailchimpService {
         reply_to: process.env.MAILCHIMP_REPLY_TO,
       });
 
-      // Create campaign - send to all list members
-      // Users can manage preferences via Mailchimp tags or unsubscribe
+      let savedSegmentId: number | undefined;
+      if (contentType === 'press-release') savedSegmentId = 3112246;
+      if (contentType === 'sec-filing') savedSegmentId = 3112247;
+      if (contentType === 'stock-price') savedSegmentId = 3112248;
+
+      const recipients: any = { list_id: listId };
+      if (savedSegmentId) {
+        recipients.segment_opts = { saved_segment_id: savedSegmentId };
+      }
+
+      // Create campaign - send to targeted segment members
       const campaign = await mailchimp.campaigns.create({
         type: 'regular',
-        recipients: {
-          list_id: listId,
-        },
+        recipients,
         settings: {
           subject_line: subject,
           from_name: process.env.MAILCHIMP_FROM_NAME || 'DigiPowerX',
@@ -484,18 +491,33 @@ class MailchimpService {
           // You'll need to replace these with actual interest IDs from your Mailchimp list
           // or use tags instead
         },
-        tags: [
-          ...(subscriber.pressReleases ? ['PRESS_RELEASES'] : []),
-          ...(subscriber.secFilings ? ['SEC_FILINGS'] : []),
-          ...(subscriber.stockPrices ? ['STOCK_PRICES'] : []),
-        ],
       };
+
+      const subscriberHash = this.getSubscriberHash(subscriber.email);
 
       await mailchimp.lists.setListMember(
         listId,
-        this.getSubscriberHash(subscriber.email),
+        subscriberHash,
         memberData
       );
+
+      // Now update the tags explicitly
+      const tagsToUpdate = [];
+      if (subscriber.pressReleases !== undefined) {
+        tagsToUpdate.push({ name: 'PRESS_RELEASES', status: subscriber.pressReleases ? 'active' : 'inactive' });
+      }
+      if (subscriber.secFilings !== undefined) {
+        tagsToUpdate.push({ name: 'SEC_FILINGS', status: subscriber.secFilings ? 'active' : 'inactive' });
+      }
+      if (subscriber.stockPrices !== undefined) {
+        tagsToUpdate.push({ name: 'STOCK_PRICES', status: subscriber.stockPrices ? 'active' : 'inactive' });
+      }
+
+      if (tagsToUpdate.length > 0) {
+        await mailchimp.lists.updateListMemberTags(listId, subscriberHash, {
+          tags: tagsToUpdate as any,
+        });
+      }
 
       console.log(`✅ Subscriber synced to Mailchimp: ${subscriber.email}`);
     } catch (error) {
