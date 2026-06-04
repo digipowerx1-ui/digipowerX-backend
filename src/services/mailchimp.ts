@@ -86,10 +86,28 @@ class MailchimpService {
         reply_to: process.env.MAILCHIMP_REPLY_TO,
       });
 
+      let segmentName = '';
+      if (contentType === 'press-release') segmentName = 'PRESS_RELEASES';
+      if (contentType === 'sec-filing') segmentName = 'SEC_FILINGS';
+      if (contentType === 'stock-price') segmentName = 'STOCK_PRICES';
+
       let savedSegmentId: number | undefined;
-      if (contentType === 'press-release') savedSegmentId = 3112246;
-      if (contentType === 'sec-filing') savedSegmentId = 3112247;
-      if (contentType === 'stock-price') savedSegmentId = 3112248;
+
+      if (segmentName) {
+        try {
+          // Fetch up to 100 segments to ensure we find it
+          const segmentsResponse = await mailchimp.lists.listSegments(listId, { count: 100 });
+          const segment = segmentsResponse.segments.find((s: any) => s.name === segmentName);
+          if (segment) {
+            savedSegmentId = segment.id;
+            console.log(`✅ Found segment ${segmentName} with ID: ${savedSegmentId}`);
+          } else {
+            console.warn(`⚠️ Segment '${segmentName}' not found in Mailchimp list. Campaign will be sent to ALL subscribers!`);
+          }
+        } catch (error) {
+          console.error('❌ Error fetching Mailchimp segments:', error);
+        }
+      }
 
       const recipients: any = { list_id: listId };
       if (savedSegmentId) {
@@ -568,6 +586,9 @@ class MailchimpService {
 
     // 2. Create + send a one-off campaign targeted at just this email
     try {
+      // Mailchimp needs a moment to index the new subscriber into segments
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
       const subject = "You're on the DigiPowerX Early Access list";
       const html = this.generateEarlyAccessEmailContent(normalizedEmail);
 
@@ -580,7 +601,7 @@ class MailchimpService {
             conditions: [
               {
                 condition_type: 'EmailAddress',
-                field: 'EMAIL',
+                field: 'merge0',
                 op: 'is',
                 value: normalizedEmail,
               },
