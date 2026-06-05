@@ -151,7 +151,22 @@ class StockPriceService {
     const etDateStr = now.toLocaleDateString('en-CA', etOptions); // en-CA gives YYYY-MM-DD format
     const etDate = new Date(etDateStr + 'T12:00:00'); // Use noon to avoid DST issues
 
-    const dayOfWeek = etDate.getDay();
+    // Get the current hour in ET to check if market has closed (closes at 4:00 PM ET, so check 5:00 PM / 17:00 ET to be safe)
+    const etTimeStr = now.toLocaleTimeString('en-US', {
+      timeZone: 'America/New_York',
+      hour12: false,
+      hour: '2-digit',
+    });
+    const etHour = parseInt(etTimeStr, 10);
+
+    // If it's before 5:00 PM ET, today's market data is not yet available,
+    // so we want to get the previous business day.
+    let baseDate = new Date(etDate);
+    if (etHour < 17) {
+      baseDate.setDate(baseDate.getDate() - 1);
+    }
+
+    const dayOfWeek = baseDate.getDay();
     let daysToSubtract = 0;
 
     // If Saturday (6), go back 1 day to Friday
@@ -163,8 +178,8 @@ class StockPriceService {
       daysToSubtract = 2;
     }
 
-    const tradingDay = new Date(etDate);
-    tradingDay.setDate(etDate.getDate() - daysToSubtract);
+    const tradingDay = new Date(baseDate);
+    tradingDay.setDate(baseDate.getDate() - daysToSubtract);
 
     return this.formatDate(tradingDay);
   }
