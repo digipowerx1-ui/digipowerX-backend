@@ -59,14 +59,6 @@ class MailchimpService {
         return;
       }
 
-      // Temporarily disable auto-sending ONLY for stock-price during testing
-      if (contentType === 'stock-price') {
-        console.log('📧 MAILCHIMP CAMPAIGN CREATED');
-        console.log(`📝 CAMPAIGN ID: ${campaign.id}`);
-        console.log('🚫 AUTO SEND DISABLED FOR TESTING');
-        return;
-      }
-
       // Send campaign
       await mailchimp.campaigns.send(campaign.id);
       console.log(`✅ Campaign sent successfully for ${contentType}: ${campaign.id}`);
