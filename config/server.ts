@@ -25,9 +25,10 @@ export default ({ env }) => {
             try {
               stockPriceService.setStrapi(strapi);
 
+              // IMPORTANT:
+              // No hardcoded date. This will test getPreviousBusinessDay()
               const result = await stockPriceService.fetchAndSaveStockPrice(
-                'DGXX',
-                '2026-06-04'
+                'DGXX'
               );
 
               console.log(
