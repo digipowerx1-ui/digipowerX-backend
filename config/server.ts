@@ -19,33 +19,33 @@ export default ({ env }) => {
         stockPriceCron: {
           task: async ({ strapi }) => {
             console.log('===================================');
-            console.log('🕐 STOCK API TEST STARTED');
+            console.log('🕐 STOCK FETCH & SAVE TEST STARTED');
             console.log(`⏰ Current timestamp: ${new Date().toISOString()}`);
 
             try {
               stockPriceService.setStrapi(strapi);
 
-              // Test with a fixed date that should already have market data
-              const stockData = await stockPriceService.fetchStockPrice(
+              const result = await stockPriceService.fetchAndSaveStockPrice(
                 'DGXX',
                 '2026-06-04'
               );
 
               console.log(
-                '📊 STOCK DATA:',
-                JSON.stringify(stockData, null, 2)
+                '📦 FETCH AND SAVE RESULT:',
+                JSON.stringify(result, null, 2)
               );
 
-              if (stockData) {
-                console.log('✅ POLYGON API RETURNED DATA');
+              if (result) {
+                console.log('✅ STOCK ENTRY CREATED SUCCESSFULLY');
               } else {
-                console.log('❌ NO DATA RETURNED FROM API');
+                console.log('❌ NO ENTRY CREATED');
               }
             } catch (error: any) {
               console.error('❌ TEST ERROR:', error?.message || error);
+              console.error(error);
             }
 
-            console.log('🕐 STOCK API TEST COMPLETED');
+            console.log('🕐 STOCK FETCH & SAVE TEST COMPLETED');
             console.log('===================================');
           },
 
