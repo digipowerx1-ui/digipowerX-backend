@@ -37,12 +37,6 @@ class MailchimpService {
     contentType: 'sec-filing' | 'press-release' | 'stock-price',
     content: any
   ): Promise<void> {
-    // Feature Flag to disable stock-price campaign sending during test
-    if (contentType === 'stock-price') {
-      console.log('📢 MAILCHIMP DISABLED FOR TESTING - Campaign creation skipped');
-      return;
-    }
-
     if (!this.isConfigured) {
       console.warn('⚠️  Mailchimp service not configured. Skipping campaign send.');
       return;
@@ -62,6 +56,14 @@ class MailchimpService {
 
       if (!campaign || !campaign.id) {
         console.error('❌ Failed to create campaign');
+        return;
+      }
+
+      // Temporarily disable auto-sending ONLY for stock-price during testing
+      if (contentType === 'stock-price') {
+        console.log('📧 MAILCHIMP CAMPAIGN CREATED');
+        console.log(`📝 CAMPAIGN ID: ${campaign.id}`);
+        console.log('🚫 AUTO SEND DISABLED FOR TESTING');
         return;
       }
 
