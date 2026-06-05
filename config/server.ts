@@ -25,7 +25,11 @@ export default ({ env }) => {
             try {
               stockPriceService.setStrapi(strapi);
 
-              const stockData = await stockPriceService.fetchStockPrice('DGXX');
+              // Test with a fixed date that should already have market data
+              const stockData = await stockPriceService.fetchStockPrice(
+                'DGXX',
+                '2026-06-04'
+              );
 
               console.log(
                 '📊 STOCK DATA:',
