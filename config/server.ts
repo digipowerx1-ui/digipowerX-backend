@@ -1,3 +1,5 @@
+import { stockPriceService } from '../src/services/stockPrice';
+
 export default ({ env }) => {
   console.log('🚀 SERVER.TS LOADED');
   console.log('🚀 CRON CONFIG LOADED');
@@ -17,9 +19,29 @@ export default ({ env }) => {
         stockPriceCron: {
           task: async ({ strapi }) => {
             console.log('===================================');
-            console.log('🕐 [CRON TEST STARTED]');
+            console.log('🕐 STOCK API TEST STARTED');
             console.log(`⏰ Current timestamp: ${new Date().toISOString()}`);
-            console.log('✅ [CRON TEST COMPLETED]');
+
+            try {
+              stockPriceService.setStrapi(strapi);
+
+              const stockData = await stockPriceService.fetchStockPrice('DGXX');
+
+              console.log(
+                '📊 STOCK DATA:',
+                JSON.stringify(stockData, null, 2)
+              );
+
+              if (stockData) {
+                console.log('✅ POLYGON API RETURNED DATA');
+              } else {
+                console.log('❌ NO DATA RETURNED FROM API');
+              }
+            } catch (error: any) {
+              console.error('❌ TEST ERROR:', error?.message || error);
+            }
+
+            console.log('🕐 STOCK API TEST COMPLETED');
             console.log('===================================');
           },
 
