@@ -93,7 +93,7 @@ class StockPriceService {
           high: stockData.high,
           low: stockData.low,
           close: stockData.close || stockData.high, // Use high if close not available
-          volume: stockData.volume,
+          volume: Math.round(stockData.volume),
           preMarket: stockData.preMarket,
           publishedAt: new Date(), // Auto-publish
         },
