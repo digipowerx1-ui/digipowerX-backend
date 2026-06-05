@@ -55,6 +55,9 @@ class StockPriceService {
       // If no date provided, use previous business day
       const targetDate = date || this.getPreviousBusinessDay();
 
+      console.log(`📅 DATE SELECTED: ${targetDate}`);
+      console.log(`📡 FETCHING ${symbol} DATA`);
+
       const url = `${this.baseUrl}/open-close/${symbol}/${targetDate}?adjusted=true&apiKey=${this.getApiKey()}`;
 
       console.log(`Fetching stock price for ${symbol} on ${targetDate}...`);
@@ -100,6 +103,7 @@ class StockPriceService {
       });
 
       console.log(`Stock price saved with ID: ${entry.id}`);
+      console.log('📈 STOCK ENTRY CREATED');
       return entry;
     } catch (error) {
       console.error('Error saving stock price:', error.message);

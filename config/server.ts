@@ -46,7 +46,7 @@ export default ({ env }) => {
               console.error(error);
             }
 
-            console.log('🕐 STOCK FETCH & SAVE TEST COMPLETED');
+            console.log('✅ FINAL TEST COMPLETED');
             console.log('===================================');
           },
 
