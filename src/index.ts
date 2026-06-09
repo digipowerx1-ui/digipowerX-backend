@@ -20,7 +20,12 @@ export default {
         // Only send email if the document is published
         if (result.publishedAt) {
           try {
-            await mailchimpService.sendCampaign('sec-filing', result);
+            const completeEntry: any = await strapi.entityService.findOne(
+              'api::sec-filing.sec-filing',
+              result.id,
+              { populate: ['pdf_file'] }
+            );
+            await mailchimpService.sendCampaign('sec-filing', completeEntry);
           } catch (error) {
             console.error('Failed to send Mailchimp campaign for SEC filing:', error);
           }
@@ -33,7 +38,12 @@ export default {
         // Send email when document is published (transitioned from draft to published)
         if (result.publishedAt && event.params?.data?.publishedAt) {
           try {
-            await mailchimpService.sendCampaign('sec-filing', result);
+            const completeEntry: any = await strapi.entityService.findOne(
+              'api::sec-filing.sec-filing',
+              result.id,
+              { populate: ['pdf_file'] }
+            );
+            await mailchimpService.sendCampaign('sec-filing', completeEntry);
           } catch (error) {
             console.error('Failed to send Mailchimp campaign for SEC filing:', error);
           }
@@ -51,7 +61,12 @@ export default {
         // Only send email if the document is published
         if (result.publishedAt) {
           try {
-            await mailchimpService.sendCampaign('press-release', result);
+            const completeEntry: any = await strapi.entityService.findOne(
+              'api::press-release.press-release',
+              result.id,
+              { populate: ['pdf_file'] }
+            );
+            await mailchimpService.sendCampaign('press-release', completeEntry);
           } catch (error) {
             console.error('Failed to send Mailchimp campaign for press release:', error);
           }
@@ -64,7 +79,12 @@ export default {
         // Send email when document is published (transitioned from draft to published)
         if (result.publishedAt && event.params?.data?.publishedAt) {
           try {
-            await mailchimpService.sendCampaign('press-release', result);
+            const completeEntry: any = await strapi.entityService.findOne(
+              'api::press-release.press-release',
+              result.id,
+              { populate: ['pdf_file'] }
+            );
+            await mailchimpService.sendCampaign('press-release', completeEntry);
           } catch (error) {
             console.error('Failed to send Mailchimp campaign for press release:', error);
           }
