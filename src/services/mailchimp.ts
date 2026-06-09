@@ -459,7 +459,7 @@ class MailchimpService {
       <!-- VIEW MORE SEC FILING BUTTON -->
       <tr>
         <td class="content-padding" style="padding: 20px 10px 40px 10px; text-align: center;">
-          <a href="${baseUrl}/investor-relations" style="background-color: #000000; border: 2px solid #F7C325; color: #F7C325; text-decoration: none; padding: 12px 30px; border-radius: 30px; font-size: 14px; font-weight: 700; display: inline-block;">
+          <a href="https://www.digipowerx.com/sec-filings" style="background-color: #000000; border: 2px solid #F7C325; color: #F7C325; text-decoration: none; padding: 12px 30px; border-radius: 30px; font-size: 14px; font-weight: 700; display: inline-block;">
             View More SEC Filing
           </a>
         </td>
