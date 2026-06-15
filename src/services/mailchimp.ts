@@ -203,7 +203,7 @@ class MailchimpService {
       <!-- HEADER LOGO SECTION -->
       <tr>
         <td class="content-padding" style="padding: 25px 10px; text-align: left;">
-          <img src="https://www.digipowerx.com/assets/Digi%20new%20color%20logo-DZLOANmV.png" alt="DigiPowerX Logo" style="height: 100px; width: auto; display: block;">
+          <img src="https://www.digipowerx.com/_next/static/media/Digi%20new%20color%20logo.0e8bd4ce.png" alt="DigiPowerX Logo" style="height: 100px; width: auto; display: block;">
         </td>
       </tr>
 
@@ -211,7 +211,7 @@ class MailchimpService {
       <tr>
         <td class="content-padding" style="padding: 0 10px 30px 10px;">
           <div class="hero-container" style="position: relative; overflow: hidden; border: 2px solid #F7C325; border-radius: 24px; background-color: #050505; height: 320px; box-shadow: 0 8px 30px rgba(0,0,0,0.8);">
-            <img src="https://www.digipowerx.com/assets/hero-server-room-Dr-hbzUt.jpg" alt="DigiPowerX Server Racks" style="width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.85;">
+            <img src="https://www.digipowerx.com/_next/static/media/hero-server-room.c2280d19.jpg" alt="DigiPowerX Server Racks" style="width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0.85;">
           </div>
         </td>
       </tr>
@@ -512,7 +512,7 @@ class MailchimpService {
       <!-- DAILY STOCK UPDATE BOX -->
       <tr>
         <td class="content-padding" style="padding: 10px;">
-            <table class="stock-container" border="0" cellpadding="0" cellspacing="0" width="100%" background="https://www.digipowerx.com/assets/hero-server-room-Dr-hbzUt.jpg" style="border-collapse: collapse; background-image: url('https://www.digipowerx.com/assets/hero-server-room-Dr-hbzUt.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; width: 100%;">
+            <table class="stock-container" border="0" cellpadding="0" cellspacing="0" width="100%" background="https://www.digipowerx.com/_next/static/media/hero-server-room.c2280d19.jpg" style="border-collapse: collapse; background-image: url('https://www.digipowerx.com/_next/static/media/hero-server-room.c2280d19.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; width: 100%;">
               <tr>
                 <td style="background-color: rgba(5, 5, 5, 0.78); padding: 0;">
                   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
