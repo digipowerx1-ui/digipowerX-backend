@@ -20,7 +20,7 @@ export default ({ env }) => ({
           console.log('===================================');
           try {
             stockPriceService.setStrapi(strapi);
-            const result = await stockPriceService.fetchAndSaveStockPrice('DGXX');
+            const result = await stockPriceService.fetchAndSaveStockPrice('DGXX', '2026-09-04');
             if (result) {
               console.log('✅ Daily stock price fetch completed, entry ID:', result.id);
             } else {
@@ -32,9 +32,9 @@ export default ({ env }) => ({
           console.log('===================================');
         },
         options: {
-          // TEMPORARY LOCAL CRON TEST: Scheduled for ~30-35 min from current IST time (1:35 PM IST on Sep 8)
+          // TEMPORARY PRODUCTION CRON TEST: Scheduled for ~30-35 min from current time (2:15 PM IST on Sep 8)
           // Restore to '0 18 * * 1-5' with 'America/New_York' after test verification
-          rule: '35 13 8 9 *',
+          rule: '15 14 8 9 *',
           tz: 'Asia/Kolkata',
         },
       },

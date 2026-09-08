@@ -52,6 +52,9 @@ class StockPriceService {
     date?: string
   ): Promise<StockPriceData | null> {
     try {
+      if (date) {
+        console.log(`📅 TEST OVERRIDE DATE: ${date}`);
+      }
       // If no date provided, use previous business day
       const targetDate = date || this.getPreviousBusinessDay();
 
