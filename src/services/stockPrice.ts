@@ -53,7 +53,7 @@ class StockPriceService {
   ): Promise<StockPriceData | null> {
     try {
       if (date) {
-        console.log(`📅 TEST OVERRIDE DATE: ${date}`);
+        console.log(`📅 Custom date provided: ${date}`);
       }
       // If no date provided, use previous business day
       const targetDate = date || this.getPreviousBusinessDay();
@@ -75,13 +75,17 @@ class StockPriceService {
         return response.data;
       }
 
-      console.error(`Failed to fetch stock price: Invalid response status`);
+      console.error(`❌ Massive API returned invalid response status: ${response.data?.status}`);
       return null;
     } catch (error: any) {
       console.error(`❌ DGXX STOCK CRON FAILED`);
-      console.error(`❌ Error: ${error.message}`);
+      console.error(`❌ Error fetching ${symbol} stock data: ${error.message}`);
       if (axios.isAxiosError(error) && error.response) {
-        console.error('Response data:', error.response.data);
+        console.error(`📡 Massive API response status: ${error.response.status}`);
+        if (error.response.data && typeof error.response.data === 'object') {
+          const { status, message } = error.response.data as any;
+          console.error('Response data:', { status, message });
+        }
       }
       return null;
     }
@@ -96,7 +100,7 @@ class StockPriceService {
     try {
       const roundedVolume = Math.round(stockData.volume);
       console.log(`📊 Volume AFTER rounding: ${roundedVolume}`);
-      console.log(`💾 Saving ${stockData.symbol} stock price...`);
+      console.log(`💾 Saving stock price for ${stockData.symbol}...`);
 
       const strapiInstance = this.getStrapi();
       const entry = await strapiInstance.entityService.create('api::stock-price.stock-price', {
@@ -114,12 +118,11 @@ class StockPriceService {
       });
 
       console.log(`✅ Stock price saved successfully`);
-      console.log(`🆔 Entry ID: ${entry.id}`);
-      console.log(`📅 Date: ${stockData.from}`);
+      console.log(`🆕 New Stock Price created: Entry ID ${entry.id} for date ${stockData.from}`);
       return entry;
     } catch (error: any) {
       console.error(`❌ DGXX STOCK CRON FAILED`);
-      console.error(`❌ Error: ${error.message}`);
+      console.error(`❌ Error saving stock price: ${error?.message || error}`);
       throw error;
     }
   }
@@ -134,7 +137,7 @@ class StockPriceService {
     const stockData = await this.fetchStockPrice(symbol, date);
 
     if (!stockData) {
-      console.error('No stock data to save');
+      console.error('❌ Massive API returned no data or request failed. No stock data to save.');
       return null;
     }
 
@@ -148,7 +151,7 @@ class StockPriceService {
     });
 
     if (existingEntries && existingEntries.length > 0) {
-      console.log(`ℹ️ ${stockData.symbol} stock price for ${stockData.from} already exists`);
+      console.log(`♻️ Stock Price already exists for ${stockData.symbol} on ${stockData.from}`);
       console.log(`🆔 Existing entry ID: ${existingEntries[0].id}`);
       return existingEntries[0];
     }

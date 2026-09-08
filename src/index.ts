@@ -97,27 +97,31 @@ export default {
       models: ['api::stock-price.stock-price'],
       async afterCreate(event) {
         const { result } = event;
-        console.log('📈 New Stock Price created:', result.documentId);
+        console.log('📈 Lifecycle afterCreate triggered for stock-price:', result.documentId || result.id);
 
         // Only send email if the document is published
         if (result.publishedAt) {
           try {
+            console.log('📧 Stock-price Mailchimp workflow triggered (published)');
             await mailchimpService.sendCampaign('stock-price', result);
-          } catch (error) {
-            console.error('Failed to send Mailchimp campaign for stock price:', error);
+          } catch (error: any) {
+            console.error('❌ Failed to send Mailchimp campaign for stock price:', error?.message || error);
           }
+        } else {
+          console.log('ℹ️ Stock-price entry is not published, skipping Mailchimp campaign');
         }
       },
       async afterUpdate(event) {
         const { result } = event;
-        console.log('📈 Stock Price updated:', result.documentId);
+        console.log('📈 Lifecycle afterUpdate triggered for stock-price:', result.documentId || result.id);
 
         // Send email when document is published (transitioned from draft to published)
         if (result.publishedAt && event.params?.data?.publishedAt) {
           try {
+            console.log('📧 Stock-price Mailchimp workflow triggered (transitioned to published)');
             await mailchimpService.sendCampaign('stock-price', result);
-          } catch (error) {
-            console.error('Failed to send Mailchimp campaign for stock price:', error);
+          } catch (error: any) {
+            console.error('❌ Failed to send Mailchimp campaign for stock price:', error?.message || error);
           }
         }
       },

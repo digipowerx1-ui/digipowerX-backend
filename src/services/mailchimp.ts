@@ -33,40 +33,48 @@ class MailchimpService {
     contentType: 'sec-filing' | 'press-release' | 'stock-price',
     content: any
   ) {
-    // Feature Flag to disable stock-price campaign sending during test
     if (contentType === 'stock-price') {
-      console.log('📢 MAILCHIMP DISABLED FOR CRON TEST');
-      console.log('📢 No Mailchimp campaign will be created or sent.');
-      return;
+      console.log('📧 Stock-price Mailchimp workflow triggered');
     }
 
     if (!this.isConfigured) {
-      console.warn('⚠️  Mailchimp service not configured. Skipping campaign send.');
+      console.warn(`⚠️ Mailchimp service not configured. Skipping campaign send for ${contentType}.`);
       return;
     }
 
     try {
+      console.log(`📧 Preparing Mailchimp campaign for ${contentType}...`);
       const listId = process.env.MAILCHIMP_LIST_ID;
+      console.log(`📧 Mailchimp audience/list configured: ${listId ? 'YES' : 'NO'}`);
       if (!listId) {
-        console.error('❌ MAILCHIMP_LIST_ID not configured');
+        console.error('❌ MAILCHIMP_LIST_ID not configured. Skipping campaign.');
         return;
       }
 
-      // Create campaign and send to all list members
-      // Note: Make sure subscribers are synced with proper tags (SEC_FILINGS, PRESS_RELEASES)
-      // They can use Mailchimp's unsubscribe feature if they don't want emails
+      console.log(`📧 Creating Mailchimp campaign for ${contentType}...`);
       const campaign = await this.createCampaign(contentType, content, listId);
 
       if (!campaign || !campaign.id) {
-        console.error('❌ Failed to create campaign');
+        console.error('❌ Mailchimp campaign creation failed: No campaign ID returned');
         return;
       }
 
+      console.log(`✅ Mailchimp campaign created: ${campaign.id}`);
+
       // Send campaign
-      await mailchimp.campaigns.send(campaign.id);
-      console.log(`✅ Campaign sent successfully for ${contentType}: ${campaign.id}`);
-    } catch (error) {
-      console.error(`❌ Error sending Mailchimp campaign for ${contentType}:`, error);
+      console.log(`📤 Sending/scheduling Mailchimp campaign: ${campaign.id}...`);
+      try {
+        await mailchimp.campaigns.send(campaign.id);
+        console.log(`✅ Mailchimp campaign sent/scheduled successfully: ${campaign.id}`);
+      } catch (sendError: any) {
+        console.error(`❌ Mailchimp send/schedule failed: ${sendError?.message || sendError}`);
+        if (sendError.response?.body?.detail) {
+          console.error(`❌ Mailchimp send error detail: ${sendError.response.body.detail}`);
+        }
+        throw sendError;
+      }
+    } catch (error: any) {
+      console.error(`❌ Error in Mailchimp workflow for ${contentType}:`, error?.message || error);
       throw error;
     }
   }
@@ -140,9 +148,9 @@ class MailchimpService {
 
       return campaign;
     } catch (error: any) {
-      console.error('❌ Error creating Mailchimp campaign:', error);
-      if (error.response?.body) {
-        console.error('📄 Mailchimp API Error Details:', JSON.stringify(error.response.body, null, 2));
+      console.error(`❌ Mailchimp campaign creation failed: ${error?.message || error}`);
+      if (error.response?.body?.detail) {
+        console.error(`❌ Mailchimp API detail: ${error.response.body.detail}`);
       }
       throw error;
     }
