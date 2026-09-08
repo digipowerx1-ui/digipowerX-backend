@@ -32,9 +32,9 @@ export default ({ env }) => ({
           console.log('===================================');
         },
         options: {
-          // TEMPORARY LOCAL CRON TEST: Scheduled for ~30 min from current IST time (12:56 PM IST on Sep 8)
+          // TEMPORARY LOCAL CRON TEST: Scheduled for ~30-35 min from current IST time (1:35 PM IST on Sep 8)
           // Restore to '0 18 * * 1-5' with 'America/New_York' after test verification
-          rule: '56 12 8 9 *',
+          rule: '35 13 8 9 *',
           tz: 'Asia/Kolkata',
         },
       },
