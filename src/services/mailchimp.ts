@@ -33,6 +33,13 @@ class MailchimpService {
     contentType: 'sec-filing' | 'press-release' | 'stock-price',
     content: any
   ) {
+    // Feature Flag to disable stock-price campaign sending during test
+    if (contentType === 'stock-price') {
+      console.log('📢 MAILCHIMP DISABLED FOR CRON TEST');
+      console.log('📢 No Mailchimp campaign will be created or sent.');
+      return;
+    }
+
     if (!this.isConfigured) {
       console.warn('⚠️  Mailchimp service not configured. Skipping campaign send.');
       return;

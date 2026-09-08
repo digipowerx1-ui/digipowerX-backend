@@ -9,12 +9,15 @@ export default ({ env }) => ({
   cron: {
     enabled: true,
     tasks: {
-      // Fetch daily stock prices at 6:00 PM ET (11:00 PM UTC / 3:30 AM IST) - after NASDAQ market close
+      // TEMPORARY PRODUCTION CRON TEST
+      // Restore normal 6 PM America/New_York schedule ('0 18 * * 1-5') after verification.
       stockPriceCron: {
         task: async ({ strapi }) => {
           console.log('===================================');
-          console.log('🕐 Running daily stock price fetch cron job...');
+          console.log('🕐 Running DAILY STOCK PRICE CRON TEST');
           console.log(`⏰ Current timestamp: ${new Date().toISOString()}`);
+          console.log('📅 Target symbol: DGXX');
+          console.log('===================================');
           try {
             stockPriceService.setStrapi(strapi);
             const result = await stockPriceService.fetchAndSaveStockPrice('DGXX');
@@ -29,8 +32,10 @@ export default ({ env }) => ({
           console.log('===================================');
         },
         options: {
-          rule: '0 18 * * 1-5',
-          tz: 'America/New_York',
+          // TEMPORARY LOCAL CRON TEST: Scheduled for ~30 min from current IST time (12:56 PM IST on Sep 8)
+          // Restore to '0 18 * * 1-5' with 'America/New_York' after test verification
+          rule: '56 12 8 9 *',
+          tz: 'Asia/Kolkata',
         },
       },
     },

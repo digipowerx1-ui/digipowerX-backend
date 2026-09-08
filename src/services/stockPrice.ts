@@ -55,24 +55,28 @@ class StockPriceService {
       // If no date provided, use previous business day
       const targetDate = date || this.getPreviousBusinessDay();
 
-      console.log(`📅 DATE SELECTED: ${targetDate}`);
-      console.log(`📡 FETCHING ${symbol} DATA`);
+      console.log(`📅 Target date: ${targetDate}`);
+      console.log(`📡 Fetching ${symbol} data...`);
 
       const url = `${this.baseUrl}/open-close/${symbol}/${targetDate}?adjusted=true&apiKey=${this.getApiKey()}`;
-
-      console.log(`Fetching stock price for ${symbol} on ${targetDate}...`);
 
       const response = await axios.get<StockPriceData>(url);
 
       if (response.data && response.data.status === 'OK') {
-        console.log(`Successfully fetched stock price for ${symbol} on ${targetDate}`);
+        console.log(`📡 Massive API response status: ${response.status}`);
+        console.log(`📊 Open: ${response.data.open}`);
+        console.log(`📊 High: ${response.data.high}`);
+        console.log(`📊 Low: ${response.data.low}`);
+        console.log(`📊 Close: ${response.data.close}`);
+        console.log(`📊 Volume BEFORE rounding: ${response.data.volume}`);
         return response.data;
       }
 
       console.error(`Failed to fetch stock price: Invalid response status`);
       return null;
-    } catch (error) {
-      console.error('Error fetching stock price:', error.message);
+    } catch (error: any) {
+      console.error(`❌ DGXX STOCK CRON FAILED`);
+      console.error(`❌ Error: ${error.message}`);
       if (axios.isAxiosError(error) && error.response) {
         console.error('Response data:', error.response.data);
       }
@@ -87,6 +91,10 @@ class StockPriceService {
    */
   async saveStockPrice(stockData: StockPriceData) {
     try {
+      const roundedVolume = Math.round(stockData.volume);
+      console.log(`📊 Volume AFTER rounding: ${roundedVolume}`);
+      console.log(`💾 Saving ${stockData.symbol} stock price...`);
+
       const strapiInstance = this.getStrapi();
       const entry = await strapiInstance.entityService.create('api::stock-price.stock-price', {
         data: {
@@ -96,17 +104,19 @@ class StockPriceService {
           high: stockData.high,
           low: stockData.low,
           close: stockData.close || stockData.high, // Use high if close not available
-          volume: Math.round(stockData.volume),
+          volume: roundedVolume,
           preMarket: stockData.preMarket,
           publishedAt: new Date(), // Auto-publish
         },
       });
 
-      console.log(`Stock price saved with ID: ${entry.id}`);
-      console.log('📈 STOCK ENTRY CREATED');
+      console.log(`✅ Stock price saved successfully`);
+      console.log(`🆔 Entry ID: ${entry.id}`);
+      console.log(`📅 Date: ${stockData.from}`);
       return entry;
-    } catch (error) {
-      console.error('Error saving stock price:', error.message);
+    } catch (error: any) {
+      console.error(`❌ DGXX STOCK CRON FAILED`);
+      console.error(`❌ Error: ${error.message}`);
       throw error;
     }
   }
@@ -135,7 +145,8 @@ class StockPriceService {
     });
 
     if (existingEntries && existingEntries.length > 0) {
-      console.log(`Stock price for ${stockData.symbol} on ${stockData.from} already exists`);
+      console.log(`ℹ️ ${stockData.symbol} stock price for ${stockData.from} already exists`);
+      console.log(`🆔 Existing entry ID: ${existingEntries[0].id}`);
       return existingEntries[0];
     }
 
