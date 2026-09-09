@@ -42,6 +42,14 @@ class MailchimpService {
       return;
     }
 
+    // Protect production audience during local diagnostic testing
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('📧 Mailchimp workflow would be triggered');
+      console.log(`📧 Campaign type: ${contentType}`);
+      console.log('📧 Local test: actual send prevented');
+      return;
+    }
+
     try {
       console.log(`📧 Preparing Mailchimp campaign for ${contentType}...`);
       const listId = process.env.MAILCHIMP_LIST_ID;

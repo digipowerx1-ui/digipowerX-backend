@@ -47,48 +47,131 @@ class StockPriceService {
    * @param date Date in YYYY-MM-DD format (default: today)
    * @returns Stock price data
    */
+  /**
+   * Fetch stock price data for a specific date from Massive/Polygon API
+   * Logs details safely without leaking API keys
+   */
+  private async fetchDateStockPrice(
+    symbol: string,
+    targetDate: string
+  ): Promise<{
+    data: StockPriceData | null;
+    httpStatus?: number;
+    responseStatus?: string;
+    message?: string;
+  }> {
+    console.log(`📡 Fetching ${symbol} stock data...`);
+    console.log(`📅 Target date: ${targetDate}`);
+    console.log(`📡 API endpoint type: open-close`);
+
+    try {
+      const url = `${this.baseUrl}/open-close/${symbol}/${targetDate}?adjusted=true&apiKey=${this.getApiKey()}`;
+      const response = await axios.get<StockPriceData>(url);
+
+      const httpStatus = response.status;
+      const responseStatus = response.data?.status || 'UNKNOWN';
+
+      console.log(`📡 Massive API status: ${httpStatus}`);
+      console.log(`📊 Massive API response status: ${responseStatus}`);
+
+      if (response.data && responseStatus === 'OK') {
+        const rawVolume = Number(response.data.volume);
+        if (!Number.isFinite(rawVolume)) {
+          throw new Error(`Invalid stock volume received: ${response.data.volume}`);
+        }
+        const roundedVolume = Math.round(rawVolume);
+
+        console.log(`📊 Close: ${response.data.close ?? response.data.high}`);
+        console.log(`📊 Open: ${response.data.open}`);
+        console.log(`📊 High: ${response.data.high}`);
+        console.log(`📊 Low: ${response.data.low}`);
+        console.log(`📊 Raw volume: ${response.data.volume}`);
+        console.log(`📊 Rounded volume: ${roundedVolume}`);
+
+        return {
+          data: response.data,
+          httpStatus,
+          responseStatus,
+        };
+      }
+
+      console.warn(`⚠️ Massive API returned non-OK response status: ${responseStatus}`);
+      return {
+        data: null,
+        httpStatus,
+        responseStatus,
+        message: 'Non-OK response status',
+      };
+    } catch (error: any) {
+      if (axios.isAxiosError(error) && error.response) {
+        const httpStatus = error.response.status;
+        const responseData = error.response.data as any;
+        const responseStatus = responseData?.status || 'ERROR';
+        const message = responseData?.message || error.message;
+
+        console.log(`📡 Massive API status: ${httpStatus}`);
+        console.log(`📊 Massive API response status: ${responseStatus}`);
+
+        if (httpStatus === 404 || responseStatus === 'NOT_FOUND') {
+          console.log(`ℹ️ Massive API: No market data found for ${symbol} on ${targetDate} (${message})`);
+        } else {
+          console.error(`❌ Massive API error for ${symbol} on ${targetDate}: HTTP ${httpStatus} - ${message}`);
+        }
+
+        return {
+          data: null,
+          httpStatus,
+          responseStatus,
+          message,
+        };
+      }
+
+      console.error(`❌ Error fetching ${symbol} stock data: ${error?.message || error}`);
+      return {
+        data: null,
+        message: error?.message || String(error),
+      };
+    }
+  }
+
+  /**
+   * Fetch stock price data for a specific date, or the latest available trading day.
+   * Handles non-trading days (weekends, holidays) by searching previous trading day.
+   * @param symbol Stock symbol (default: DGXX)
+   * @param date Date in YYYY-MM-DD format (default: calculated business day)
+   * @returns Stock price data or null
+   */
   async fetchStockPrice(
     symbol: string = 'DGXX',
     date?: string
   ): Promise<StockPriceData | null> {
-    try {
-      if (date) {
-        console.log(`📅 Custom date provided: ${date}`);
-      }
-      // If no date provided, use previous business day
-      const targetDate = date || this.getPreviousBusinessDay();
+    const requestedDate = date || this.getPreviousBusinessDay();
+    console.log(`📅 Requested date: ${requestedDate}`);
 
-      console.log(`📅 Target date: ${targetDate}`);
-      console.log(`📡 Fetching ${symbol} data...`);
-
-      const url = `${this.baseUrl}/open-close/${symbol}/${targetDate}?adjusted=true&apiKey=${this.getApiKey()}`;
-
-      const response = await axios.get<StockPriceData>(url);
-
-      if (response.data && response.data.status === 'OK') {
-        console.log(`📡 Massive API response status: ${response.status}`);
-        console.log(`📊 Open: ${response.data.open}`);
-        console.log(`📊 High: ${response.data.high}`);
-        console.log(`📊 Low: ${response.data.low}`);
-        console.log(`📊 Close: ${response.data.close}`);
-        console.log(`📊 Volume BEFORE rounding: ${response.data.volume}`);
-        return response.data;
-      }
-
-      console.error(`❌ Massive API returned invalid response status: ${response.data?.status}`);
-      return null;
-    } catch (error: any) {
-      console.error(`❌ DGXX STOCK CRON FAILED`);
-      console.error(`❌ Error fetching ${symbol} stock data: ${error.message}`);
-      if (axios.isAxiosError(error) && error.response) {
-        console.error(`📡 Massive API response status: ${error.response.status}`);
-        if (error.response.data && typeof error.response.data === 'object') {
-          const { status, message } = error.response.data as any;
-          console.error('Response data:', { status, message });
-        }
-      }
-      return null;
+    // First attempt the requested date
+    const initialResult = await this.fetchDateStockPrice(symbol, requestedDate);
+    if (initialResult.data) {
+      return initialResult.data;
     }
+
+    // If requested date has no market data (holiday or weekend), search previous trading day
+    console.warn(`⚠️ No ${symbol} market data available for ${requestedDate}`);
+    console.log(`📅 Searching previous trading day...`);
+
+    let candidateDate = requestedDate;
+    const maxLookbackDays = 7;
+    for (let i = 0; i < maxLookbackDays; i++) {
+      candidateDate = this.getPreviousTradingDay(candidateDate);
+      console.log(`📅 Checking previous trading date candidate: ${candidateDate}...`);
+      const candidateResult = await this.fetchDateStockPrice(symbol, candidateDate);
+      if (candidateResult.data) {
+        console.log(`📅 Using trading date: ${candidateDate}`);
+        return candidateResult.data;
+      }
+    }
+
+    console.error(`❌ DGXX STOCK CRON: No market data found for ${symbol} within ${maxLookbackDays} days prior to ${requestedDate}`);
+    return null;
   }
 
   /**
@@ -98,9 +181,19 @@ class StockPriceService {
    */
   async saveStockPrice(stockData: StockPriceData) {
     try {
-      const roundedVolume = Math.round(stockData.volume);
-      console.log(`📊 Volume AFTER rounding: ${roundedVolume}`);
-      console.log(`💾 Saving stock price for ${stockData.symbol}...`);
+      const rawVolume = Number(stockData.volume);
+      if (!Number.isFinite(rawVolume)) {
+        throw new Error(`Invalid stock volume received: ${stockData.volume}`);
+      }
+      const roundedVolume = Math.round(rawVolume);
+
+      console.log(`💾 Saving ${stockData.symbol} stock price...`);
+      console.log(`📅 Date: ${stockData.from}`);
+      console.log(`💰 Open: ${stockData.open}`);
+      console.log(`💰 High: ${stockData.high}`);
+      console.log(`💰 Low: ${stockData.low}`);
+      console.log(`💰 Close: ${stockData.close ?? stockData.high}`);
+      console.log(`📊 Volume: ${stockData.volume} → ${roundedVolume}`);
 
       const strapiInstance = this.getStrapi();
       const entry = await strapiInstance.entityService.create('api::stock-price.stock-price', {
@@ -110,7 +203,7 @@ class StockPriceService {
           open: stockData.open,
           high: stockData.high,
           low: stockData.low,
-          close: stockData.close || stockData.high, // Use high if close not available
+          close: stockData.close ?? stockData.high,
           volume: roundedVolume,
           preMarket: stockData.preMarket,
           publishedAt: new Date(), // Auto-publish
@@ -118,7 +211,10 @@ class StockPriceService {
       });
 
       console.log(`✅ Stock price saved successfully`);
-      console.log(`🆕 New Stock Price created: Entry ID ${entry.id} for date ${stockData.from}`);
+      if ((entry as any).documentId) {
+        console.log(`📈 New Stock Price created: ${(entry as any).documentId}`);
+      }
+      console.log(`🆔 Entry ID: ${entry.id}`);
       return entry;
     } catch (error: any) {
       console.error(`❌ DGXX STOCK CRON FAILED`);
@@ -151,8 +247,9 @@ class StockPriceService {
     });
 
     if (existingEntries && existingEntries.length > 0) {
-      console.log(`♻️ Stock Price already exists for ${stockData.symbol} on ${stockData.from}`);
-      console.log(`🆔 Existing entry ID: ${existingEntries[0].id}`);
+      console.log(`ℹ️ Stock price already exists for ${stockData.from}`);
+      console.log(`No duplicate entry created.`);
+      console.log(`🆔 Entry ID: ${existingEntries[0].id}`);
       return existingEntries[0];
     }
 
@@ -160,9 +257,25 @@ class StockPriceService {
   }
 
   /**
+   * Given a date string (YYYY-MM-DD), find the previous calendar trading day (skipping weekends)
+   */
+  private getPreviousTradingDay(dateStr: string): string {
+    const date = new Date(dateStr + 'T12:00:00');
+    date.setDate(date.getDate() - 1);
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0) {
+      // Sunday -> step back to Friday
+      date.setDate(date.getDate() - 2);
+    } else if (dayOfWeek === 6) {
+      // Saturday -> step back to Friday
+      date.setDate(date.getDate() - 1);
+    }
+    return this.formatDate(date);
+  }
+
+  /**
    * Get the latest trading day based on US Eastern Time
-   * Cron runs at 3:00 AM IST = 4:30 PM ET (after market close)
-   * So we need to get the current US date, not IST date
+   * Cron runs at 6:00 PM ET (after NASDAQ market close, Monday-Friday)
    * @returns Date string in YYYY-MM-DD format
    */
   private getPreviousBusinessDay(): string {
