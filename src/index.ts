@@ -103,6 +103,7 @@ export default {
         if (result.publishedAt) {
           try {
             console.log('📧 Stock-price Mailchimp workflow triggered (published)');
+            console.log(`📧 Passing stock entry ID ${result.id} with date ${result.date} to Mailchimp`);
             await mailchimpService.sendCampaign('stock-price', result);
           } catch (error: any) {
             console.error('❌ Failed to send Mailchimp campaign for stock price:', error?.message || error);
@@ -119,6 +120,7 @@ export default {
         if (result.publishedAt && event.params?.data?.publishedAt) {
           try {
             console.log('📧 Stock-price Mailchimp workflow triggered (transitioned to published)');
+            console.log(`📧 Passing stock entry ID ${result.id} with date ${result.date} to Mailchimp`);
             await mailchimpService.sendCampaign('stock-price', result);
           } catch (error: any) {
             console.error('❌ Failed to send Mailchimp campaign for stock price:', error?.message || error);

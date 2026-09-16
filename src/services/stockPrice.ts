@@ -62,6 +62,7 @@ class StockPriceService {
   }> {
     console.log(`📡 Fetching ${symbol} stock data...`);
     console.log(`📅 Target date: ${targetDate}`);
+    console.log(`📅 Massive API date: ${targetDate}`);
     console.log(`📡 API endpoint type: open-close`);
 
     try {
@@ -81,6 +82,17 @@ class StockPriceService {
         }
         const roundedVolume = Math.round(rawVolume);
 
+        // Massive echoes the trading date it actually served in `from`. Trust it, but
+        // fall back to the queried date so the saved/emailed date is never undefined.
+        if (!response.data.from) {
+          console.warn(`⚠️ Massive API response had no "from" date; defaulting to queried date ${targetDate}`);
+          response.data.from = targetDate;
+        }
+
+        console.log(`📅 Massive API returned date (from): ${response.data.from}`);
+        if (response.data.from !== targetDate) {
+          console.warn(`⚠️ Massive API returned a different date than requested (requested ${targetDate}, returned ${response.data.from})`);
+        }
         console.log(`📊 Close: ${response.data.close ?? response.data.high}`);
         console.log(`📊 Open: ${response.data.open}`);
         console.log(`📊 High: ${response.data.high}`);
@@ -146,11 +158,13 @@ class StockPriceService {
     date?: string
   ): Promise<StockPriceData | null> {
     const requestedDate = date || this.getPreviousBusinessDay();
-    console.log(`📅 Requested date: ${requestedDate}`);
+
+    this.logDateDiagnostics(requestedDate, date ? 'explicit argument' : 'computed from America/New_York clock');
 
     // First attempt the requested date
     const initialResult = await this.fetchDateStockPrice(symbol, requestedDate);
     if (initialResult.data) {
+      console.log(`📅 Actual trading date used: ${initialResult.data.from}`);
       return initialResult.data;
     }
 
@@ -166,6 +180,8 @@ class StockPriceService {
       const candidateResult = await this.fetchDateStockPrice(symbol, candidateDate);
       if (candidateResult.data) {
         console.log(`📅 Using trading date: ${candidateDate}`);
+        console.log(`📅 Non-trading-day fallback applied: requested ${requestedDate} → ${candidateResult.data.from}`);
+        console.log(`📅 Actual trading date used: ${candidateResult.data.from}`);
         return candidateResult.data;
       }
     }
@@ -188,7 +204,7 @@ class StockPriceService {
       const roundedVolume = Math.round(rawVolume);
 
       console.log(`💾 Saving ${stockData.symbol} stock price...`);
-      console.log(`📅 Date: ${stockData.from}`);
+      console.log(`📅 Saving stock price date: ${stockData.from}`);
       console.log(`💰 Open: ${stockData.open}`);
       console.log(`💰 High: ${stockData.high}`);
       console.log(`💰 Low: ${stockData.low}`);
@@ -211,10 +227,16 @@ class StockPriceService {
       });
 
       console.log(`✅ Stock price saved successfully`);
-      if ((entry as any).documentId) {
-        console.log(`📈 New Stock Price created: ${(entry as any).documentId}`);
+      console.log(`📈 Stock Price created`);
+      console.log(`   Document ID: ${(entry as any).documentId ?? 'N/A'}`);
+      console.log(`   Entry ID: ${entry.id}`);
+      console.log(`   Stock date: ${(entry as any).date}`);
+      console.log(`   PublishedAt: ${(entry as any).publishedAt}`);
+
+      if (String((entry as any).date).slice(0, 10) !== stockData.from) {
+        console.error(`❌ DATE MISMATCH: Massive trading date ${stockData.from} was stored as ${(entry as any).date}`);
       }
-      console.log(`🆔 Entry ID: ${entry.id}`);
+
       return entry;
     } catch (error: any) {
       console.error(`❌ DGXX STOCK CRON FAILED`);
@@ -250,10 +272,27 @@ class StockPriceService {
       console.log(`ℹ️ Stock price already exists for ${stockData.from}`);
       console.log(`No duplicate entry created.`);
       console.log(`🆔 Entry ID: ${existingEntries[0].id}`);
+      console.log(`📅 Existing entry stock date: ${(existingEntries[0] as any).date}`);
       return existingEntries[0];
     }
 
     return await this.saveStockPrice(stockData);
+  }
+
+  /**
+   * Log every date the workflow depends on, so a production run makes the
+   * UTC / America/New_York / requested / target relationship explicit.
+   * Never logs API keys or secrets.
+   */
+  private logDateDiagnostics(requestedDate: string, source: string) {
+    const now = new Date();
+    console.log(`📅 Current timestamp: ${now.toISOString()}`);
+    console.log(`📅 Current UTC: ${now.toISOString().slice(0, 10)}`);
+    console.log(`📅 New York date: ${now.toLocaleDateString('en-CA', { timeZone: 'America/New_York' })}`);
+    console.log(`📅 New York time: ${now.toLocaleString('en-US', { timeZone: 'America/New_York', hour12: false })}`);
+    console.log(`📅 Host timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
+    console.log(`📅 Requested stock date: ${requestedDate} (source: ${source})`);
+    console.log(`📅 Target trading date: ${requestedDate}`);
   }
 
   /**

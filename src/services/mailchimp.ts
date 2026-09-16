@@ -35,6 +35,17 @@ class MailchimpService {
   ) {
     if (contentType === 'stock-price') {
       console.log('📧 Stock-price Mailchimp workflow triggered');
+      console.log(`📧 Stock entry ID: ${content?.id ?? 'N/A'}`);
+      console.log(`📧 Stock entry document ID: ${content?.documentId ?? 'N/A'}`);
+      console.log(`📧 Stock entry date: ${content?.date ?? 'N/A'}`);
+      console.log(`📧 Stock entry date (normalized): ${this.toCalendarDateString(content?.date) ?? 'N/A'}`);
+      console.log(`📧 Stock close price: ${content?.close ?? 'N/A'}`);
+      console.log(`📧 Stock volume: ${content?.volume ?? 'N/A'}`);
+
+      if (!content?.date) {
+        console.error('❌ Stock-price content has no date — email subject would be dateless. Aborting campaign.');
+        return;
+      }
     }
 
     if (!this.isConfigured) {
@@ -96,6 +107,11 @@ class MailchimpService {
     try {
       const subject = this.getSubject(contentType, content);
       const emailContent = this.generateEmailContent(contentType, content);
+
+      if (contentType === 'stock-price') {
+        console.log(`📧 Subject date source: content.date = ${content?.date} (entry ID ${content?.id ?? 'N/A'})`);
+        console.log(`📧 Subject line: ${subject}`);
+      }
 
       console.log('📋 Creating campaign with:', {
         contentType,
@@ -164,13 +180,57 @@ class MailchimpService {
     }
   }
 
+  // ─── Calendar-date handling ──────────────────────────────────────────────────
+
+  /**
+   * Normalize a Strapi `date` attribute to a plain YYYY-MM-DD calendar day.
+   *
+   * These attributes carry no time component, but they reach us either as a
+   * 'YYYY-MM-DD' string or as a Date pinned to midnight — UTC midnight with some
+   * DB drivers, local midnight with others. Reading the components from whichever
+   * interpretation actually lands on midnight keeps the calendar day intact.
+   */
+  private toCalendarDateString(value: any): string | null {
+    if (!value) return null;
+
+    if (value instanceof Date) {
+      if (Number.isNaN(value.getTime())) return null;
+      const isUtcMidnight =
+        value.getUTCHours() === 0 && value.getUTCMinutes() === 0 && value.getUTCSeconds() === 0;
+      const year = isUtcMidnight ? value.getUTCFullYear() : value.getFullYear();
+      const month = (isUtcMidnight ? value.getUTCMonth() : value.getMonth()) + 1;
+      const day = isUtcMidnight ? value.getUTCDate() : value.getDate();
+      return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+
+    const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return match ? `${match[1]}-${match[2]}-${match[3]}` : null;
+  }
+
+  /**
+   * Format a Strapi `date` attribute for display.
+   *
+   * `new Date('2026-09-15')` parses as UTC midnight, so formatting it in the host
+   * timezone renders 9/14 on any negative-offset host (production runs
+   * America/New_York). Pinning the locale and formatting in UTC makes the rendered
+   * date always equal the stored trading date.
+   */
+  private formatCalendarDate(value: any, options: Intl.DateTimeFormatOptions = {}): string {
+    const isoDate = this.toCalendarDateString(value);
+    if (!isoDate) return '';
+    return new Date(`${isoDate}T00:00:00Z`).toLocaleDateString('en-US', {
+      ...options,
+      timeZone: 'UTC',
+    });
+  }
+
   private getSubject(contentType: 'sec-filing' | 'press-release' | 'stock-price', content: any): string {
     if (contentType === 'sec-filing') {
       return `New SEC Filing: ${content.form_type || 'Form'} - ${content.description || 'Update'}`;
     } else if (contentType === 'press-release') {
       return `New Press Release: ${content.title || 'Update'}`;
     } else {
-      return `Daily Stock Update: ${content.symbol || 'DGXX'} - ${content.date ? new Date(content.date).toLocaleDateString() : ''}`;
+      return `Daily Stock Update: ${content.symbol || 'DGXX'} - ${this.formatCalendarDate(content.date)}`;
     }
   }
 
@@ -343,7 +403,7 @@ class MailchimpService {
 
   private generatePressReleaseEmail(content: any, baseUrl: string): string {
     const publishedDate = content.date
-      ? new Date(content.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      ? this.formatCalendarDate(content.date, { year: 'numeric', month: 'long', day: 'numeric' })
       : 'N/A';
     const backendUrlRaw = process.env.BACKEND_URL || baseUrl;
     const backendUrl = String(backendUrlRaw).replace(/\/+$/g, '');
@@ -421,7 +481,7 @@ class MailchimpService {
 
   private generateSecFilingEmail(content: any, baseUrl: string): string {
     const filedDate = content.date
-      ? new Date(content.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+      ? this.formatCalendarDate(content.date, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
       : 'N/A';
     const backendUrlRaw = process.env.BACKEND_URL || baseUrl;
     const backendUrl = String(backendUrlRaw).replace(/\/+$/g, '');
@@ -504,7 +564,7 @@ class MailchimpService {
     const changeBgColor = priceChange >= 0 ? '#0C3E20' : '#3e0c0c';
     const changeSymbol = priceChange >= 0 ? '&#9650;' : '&#9660;';
     const formattedDate = content.date
-      ? new Date(content.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+      ? this.formatCalendarDate(content.date, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
       : 'N/A';
 
     return `<!DOCTYPE html>
