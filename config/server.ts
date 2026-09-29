@@ -9,7 +9,7 @@ export default ({ env }) => ({
   cron: {
     enabled: true,
     tasks: {
-      // Fetch daily stock prices at 6:00 PM ET (after NASDAQ market close, Monday-Friday)
+      // Hourly 6-11 PM ET, Mon-Fri: today's close only (Massive plan 403s until end of day). First success saves + emails; later runs hit the existing entry.
       stockPriceCron: {
         task: async ({ strapi }) => {
           console.log('===================================');
@@ -31,7 +31,7 @@ export default ({ env }) => ({
           console.log('===================================');
         },
         options: {
-          rule: '0 18 * * 1-5',
+          rule: '0 18-23 * * 1-5',
           tz: 'America/New_York',
         },
       },

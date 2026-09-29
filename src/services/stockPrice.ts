@@ -252,10 +252,19 @@ class StockPriceService {
    * @returns Saved stock price entry or null
    */
   async fetchAndSaveStockPrice(symbol: string = 'DGXX', date?: string) {
-    const stockData = await this.fetchStockPrice(symbol, date);
+    const requestedDate = date || this.getPreviousBusinessDay();
+    // Cron path: today's trading date only. Falling back to an older day would email stale data.
+    const stockData = date
+      ? await this.fetchStockPrice(symbol, date)
+      : (await this.fetchDateStockPrice(symbol, requestedDate)).data;
 
     if (!stockData) {
       console.error('❌ Massive API returned no data or request failed. No stock data to save.');
+      return null;
+    }
+
+    if (!date && stockData.from !== requestedDate) {
+      console.warn(`⚠️ Skipping stock email: requested ${requestedDate}, but latest available quote was ${stockData.from}`);
       return null;
     }
 
@@ -314,7 +323,7 @@ class StockPriceService {
 
   /**
    * Get the latest trading day based on US Eastern Time
-   * Cron runs at 6:00 PM ET (after NASDAQ market close, Monday-Friday)
+   * Cron runs hourly 6-11 PM ET Mon-Fri, so this resolves to today
    * @returns Date string in YYYY-MM-DD format
    */
   private getPreviousBusinessDay(): string {

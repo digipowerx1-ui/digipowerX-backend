@@ -156,7 +156,7 @@ class MailchimpService {
         settings: {
           subject_line: subject,
           from_name: process.env.MAILCHIMP_FROM_NAME || 'DigiPowerX',
-          reply_to: process.env.MAILCHIMP_REPLY_TO || 'noreply@digipowerx.com',
+          reply_to: process.env.MAILCHIMP_REPLY_TO || 'ir@digipowerx.com',
           title: `${contentType} - ${new Date().toISOString()}`,
         },
       });
@@ -657,7 +657,7 @@ class MailchimpService {
                           <tr>
                             <td colspan="2" align="right" valign="top" class="stock-volume" style="padding-top: 5px; padding-left: 5px; box-sizing: border-box;">
                               <div style="color: #A0A0A0; font-size: 10px; font-weight: 600; text-transform: uppercase;">VOLUME</div>
-                              <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">${content.volume ? content.volume.toLocaleString() : 'N/A'}</div>
+                              <div style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin-top: 2px;">${content.volume ? Number(content.volume).toLocaleString('en-US') : 'N/A'}</div>
                             </td>
                           </tr>
                         </table>
@@ -805,7 +805,7 @@ class MailchimpService {
         settings: {
           subject_line: subject,
           from_name: process.env.MAILCHIMP_FROM_NAME || 'DigiPowerX',
-          reply_to: process.env.MAILCHIMP_REPLY_TO || 'noreply@digipowerx.com',
+          reply_to: process.env.MAILCHIMP_REPLY_TO || 'ir@digipowerx.com',
           title: `Early Access - ${normalizedEmail} - ${new Date().toISOString()}`,
         },
       });
